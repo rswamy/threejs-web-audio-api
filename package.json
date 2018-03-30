@@ -4,6 +4,7 @@
   "description": "THREE.js and web audio api playground",
   "main": "''",
   "scripts": {
+    "start": "webpack-dev-server --mode development",
     "build": "NODE_ENV=production webpack -p --config ./webpack.production.config.js",
     "dev": "webpack-dev-server --progress --profile --colors --hot"
   },
@@ -19,6 +20,7 @@
   "homepage": "https://github.com/a-axton/threejs-web-audio-api",
   "dependencies": {
     "dat-gui": "^0.5.0",
+    "less-loader": "^4.1.0",
     "lodash": "^3.10.1",
     "three": "^0.73.0",
     "three-orbit-controls": "^71.1.0"
@@ -28,9 +30,14 @@
     "babel-loader": "^5.1.4",
     "css-loader": "^0.18.0",
     "file-loader": "^0.8.4",
+    "html-webpack-plugin": "^3.1.0",
+    "less": "^2.7.3",
+    "node-sass": "^4.8.3",
+    "pixi.js": "^4.7.1",
+    "sass-loader": "^6.0.7",
     "style-loader": "^0.12.4",
     "url-loader": "^0.5.6",
-    "webpack": "^1.9.11",
-    "webpack-dev-server": "^1.9.0"
+    "webpack": "^2.7.0",
+    "webpack-dev-server": "^1.16.5"
   }
 }

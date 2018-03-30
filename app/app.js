@@ -2,6 +2,9 @@ import AudioAnalyzer from './AudioAnalyzer/AudioAnalyzer';
 import Debug from './Debug/Debug';
 import datGui from './Debug/dat-gui';
 import scene from './scene';
+import './styles/appStyles.scss';
+import './styles/themeColors.scss';
+import videoManager from './Video/videoManager';
 
 let audioAnalyzer = new AudioAnalyzer({
   volSens: 1,
@@ -11,8 +14,13 @@ let audioAnalyzer = new AudioAnalyzer({
 });
 let debug = new Debug;
 
-// starts dat gui debug panel
-window.onload = () => datGui(audioAnalyzer);
+var startTime = Date.now();
+
+// starts dat gui debug panel and videoManager when the window is loaded.
+window.onload = function() {
+  datGui(audioAnalyzer);
+  videoManager();
+};
 
 /**
  *  Main render loop
@@ -29,3 +37,6 @@ audioAnalyzer.start((audioData) => {
   // send data to THREE.js scene
   scene(audioData);
 });
+
+
+console.log('app loaded');

@@ -3,33 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <title>THREEjs Web Audio Starter</title>
-  <style>
-    html, body {
-      min-height: 100%;
-    }
-    body {
-      background: #000;
-      margin: 0;
-      padding: 0;
-    }
-    /* styles needed for adding canvas debugger to dat gui */
-    .dg .closed li:not(.title), .dg .closed ul li, .dg .closed ul li > * {
-      height: 0 !important;
-    }
-    .dg li:not(.folder):first-child {
-      line-height: 0;
-    }
-    #scene {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
 </head>
 <body>
+
   <div id="debug">
     <canvas id="debug-canvas" width="245" height="140"></canvas>
   </div>
   <div id="scene"></div>
+
+  <div id="video-player" class="fullscreen-bg">
+      <video class="fullscreen-bg__video" muted autoplay loop>
+          <source src="video/ambient.mp4" type="video/mp4">
+      </video>
+      <div class="fullscreen-bg__playlist">
+          <a href="video/ambient.mp4" class="current-video"></a>
+          <a href="video/3dfractal.mp4"></a>
+          <a href="video/animatedClouds.mp4"></a>
+          <a href="video/bilousby.mp4"></a>
+          <a href="video/blackTriangles.mp4"></a>
+          <a href="video/bgk1.mp4"></a>
+          <a href="video/bgk2.mp4"></a>
+          <a href="video/bgk3.mp4"></a>
+          <a href="video/bokeh.mp4"></a>
+          <a href="video/bubbles.mp4"></a>
+          <a href="video/bwmove.mp4"></a>
+          <a href="video/clouds.mp4"></a>
+          <a href="video/clouds1.mp4"></a>
+          <a href="video/clouds2.mp4"></a>
+          <a href="video/clouds3.mp4"></a>
+          <a href="video/clouds4.mp4"></a>
+          <a href="video/clouds6.mp4"></a>
+          <a href="video/clouds7.mp4"></a>
+          <a href="video/connect.mp4"></a>
+          <a href="video/darkness1.mp4"></a>
+          <a href="video/dotmatrix.mp4"></a>
+          <a href="video/energy.mp4"></a>
+          <a href="video/exhaust.mp4"></a>
+          <a href="video/fastshards.mp4"></a>
+          <a href="video/flyup.mp4"></a>
+          <a href="video/greywaves.mp4"></a>
+          <a href="video/inkinwater.mp4"></a>
+          <a href="video/jellyfish1.mp4"></a>
+          <a href="video/kaleigrid.mp4"></a>
+          <a href="video/movingline.mp4"></a>
+          <a href="video/multi-turbs.mp4"></a>
+          <a href="video/netenergy.mp4"></a>
+          <a href="video/out.mp4"></a>
+          <a href="video/plexus.mp4"></a>
+          <a href="video/rolling.mp4"></a>
+          <a href="video/sink.mp4"></a>
+          <a href="video/sinusoid.mp4"></a>
+          <a href="video/smoke.mp4"></a>
+          <a href="video/snow.mp4"></a>
+          <a href="video/tanglednets.mp4"></a>
+          <a href="video/thunder1.mp4"></a>
+          <a href="video/thunder2.mp4"></a>
+          <a href="video/triangles2.mp4"></a>
+          <a href="video/triangles3.mp4"></a>
+          <a href="video/water1.mp4"></a>
+          <a href="video/water2.mp4"></a>
+          <a href="video/waves1.mp4"></a>
+          <a href="video/waves2.mp4"></a>
+          <a href="video/waves3.mp4"></a>
+          <a href="video/waves4.mp4"></a>
+          <a href="video/waves5.mp4"></a>
+          <a href="video/wrmmm.mp4"></a>
+      </div>
+  </div>
+
   <script src="./bundle.js" type="text/javascript"></script>
+
+
 </body>
 </html>
