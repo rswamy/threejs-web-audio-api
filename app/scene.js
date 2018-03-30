@@ -10,8 +10,8 @@ const windowWidth = window.innerWidth;
 const windowHeight = window.innerHeight;
 const scene2DintervalMin = 5000;
 const scene2DintervalMax = 10000;
-const scene3DintervalMin = 5000;
-const scene3DintervalMax = 10000;
+const scene3DintervalMin = 18000;
+const scene3DintervalMax = 500000;
 
 // Make timer for all timers
 let timers = document.createElement("ul");
@@ -159,7 +159,8 @@ let triangleScene = new TriangleScene("triangle");
 // Start of code to randomly select the 2D scenes
 let arrayOf2Dscenes = [
 	discoScene,
-	triangleScene
+	triangleScene,
+	emptyScene
 ];
 
 // When the app loads, initially show a the disco scene
@@ -191,6 +192,10 @@ function random2Dscene() {
 	console.log('[2D] Will change 2D scene in ' + interval2D + ' ms');
 	setTimeout(random2Dscene, interval2D);
 }
+
+
+
+
 
 /** * * * * * * * * * * 3D Scene setup * * * * * * * * * * * * * * *
  *  THREEjs initialization
@@ -225,6 +230,19 @@ let ambientLight = new THREE.AmbientLight(0x404040);
 // set where you want the light to be directed at
 pointLight.position.set(10, 50, 130);
 
+/* Materials */
+var whiteWireframeMaterial = new THREE.MeshBasicMaterial( {
+	color: 0xffffff,
+	wireframe: true
+} );
+var grayPurpleWireframeMaterial = new THREE.MeshBasicMaterial( {
+	color: 0x666699,
+	wireframe: true
+} );
+var grayWireframeMaterial = new THREE.MeshBasicMaterial( {
+	color: 0x7f7f7f,
+	wireframe: true
+} );
 
 class Scene3D {
 	constructor(sceneName) {
@@ -371,17 +389,46 @@ class StickScene extends Scene3D {
 		// add sticks to scene and move group to center.
 		stickGroup.position.set(0, -numberOfSticks * stickGapDistance/2, 0);
 		pivot = new THREE.Object3D();
+		pivot.name = 'pivot';
 		pivot.add(stickGroup);
 		this.container.add(pivot);
 	}
 	audioTick(audioData) {
 		super.audioTick(audioData);
+		var volume = this.volume;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
-			var childrenArray = this.container.children;
+			var childrenArray = this.container.children[0].children[0].children;
 			for(let i = 0; i < childrenArray.length; i++) {
-				childrenArray[i].rotateY(i * 0.2);
+				childrenArray[i].rotation.set(0, (Math.PI*i/4), 0);
+				childrenArray[i].scale.x = volume * 70;
+				childrenArray[i].scale.y = volume * 20;
 			}
-			this.container.rotateZ(0.01);
+			this.container.rotateZ(0.001);
+		}
+	}
+}
+
+/**
+ *  Torus
+ *  ------
+ */
+class TorusScene extends Scene3D {
+	start() {
+		super.start();
+		var geometry = new THREE.TorusKnotGeometry( 300, 100, 20, 16 );
+		var torusKnot = new THREE.Mesh( geometry, grayWireframeMaterial );
+		this.container.add(torusKnot);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volumeFactor = this.volume * 20;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			this.container.rotateZ(-0.004);
+			this.container.rotateY(0.002);
+			if(isBeat) {
+				this.container.scale.set(volumeFactor, volumeFactor, volumeFactor);
+			}
 		}
 	}
 }
@@ -396,6 +443,7 @@ let empty3Dscene = new Scene3D("empty");
 let sphereScene = new SphereScene("sphere");
 let planeScene = new PlaneScene("plane");
 let stickScene = new StickScene("stick");
+let torusScene = new TorusScene("torus");
 
 // When app loads, initially show the sphere scene
 var current3Dscene = sphereScene;
@@ -404,9 +452,9 @@ current3Dscene.start();
 // Then start choosing random 3D scenes:
 let arrayOf3Dscenes = [
 	//sphereScene,
-	planeScene,
-	planeScene
+	// planeScene,
 	// stickScene,
+	torusScene
 	// empty3Dscene
 ];
 random3Dscene();
@@ -447,6 +495,10 @@ export default function(audioData) {
 	if(stickScene != null) {
 		stickScene.audioTick(audioData);
 	}
+	if(torusScene != null) {
+		torusScene.audioTick(audioData);
+	}
+
 
 	// rerender scene every update
 	render();
