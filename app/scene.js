@@ -47,6 +47,9 @@ app2D.renderer.resize(window.innerWidth, window.innerHeight);
 app2D.view.id = 'pixi';
 document.getElementById('scene2D').appendChild(app2D.view);
 
+var blurFilter1 = new PIXI.filters.BlurFilter();
+var blurFilter2 = new PIXI.filters.BlurFilter(5);
+
 class Scene2D {
 	constructor(sceneName) {
 		this.container = null;
@@ -59,11 +62,11 @@ class Scene2D {
 		this.count = 0;
 	}
 	stop() {
-		console.log('Scene2D] stopping and destroying ' + this.sceneName);
+		//console.log('Scene2D] stopping and destroying ' + this.sceneName);
 		this.container.destroy({children:true});
 	}
 	start() {
-		console.log('Scene2D] starting ' + this.sceneName);
+		//console.log('Scene2D] starting ' + this.sceneName);
 		this.container = new PIXI.Container();
 		app2D.stage.addChild(this.container);
 	}
@@ -83,10 +86,7 @@ class DiscoScene extends Scene2D {
 		// create disco ball flecks
 		let fleckSpacing = 100;
 		let numberOfFlecks = 30;
-		console.log('DiscoScene] numberOfFlecks= ' + numberOfFlecks);
 		// create many flecks
-		var blurFilter1 = new PIXI.filters.BlurFilter();
-		var blurFilter2 = new PIXI.filters.BlurFilter(5);
 		for (let i = 0; i < numberOfFlecks; i++) {
 			let discoFleck = new PIXI.Graphics();
 			discoFleck.beginFill(0xffffff, 0.5);
@@ -188,7 +188,7 @@ class CirclesArray extends Scene2D {
 			var childrenArray = this.container.children;
 			childrenArray.forEach(function (child) {
 				if(childrenArray.indexOf(child) % 2 == 0) {
-					child.position.y = 1 + (volume * 50);
+					child.position.y = 1 + volume * 5;
 				}
 			})
 		}
@@ -200,13 +200,12 @@ class BubblesArray extends Scene2D {
 		super.start();
 		// create disco ball flecks
 		let fleckSpacing = 100;
-		let numberOfFlecks = 30;
-		console.log('DiscoScene] numberOfFlecks= ' + numberOfFlecks);
+		let numberOfFlecks = 15;
 		// create many flecks
 		var blurFilter1 = new PIXI.filters.BlurFilter();
 		for (let i = 0; i < numberOfFlecks; i++) {
 			let discoFleck = new PIXI.Graphics();
-			discoFleck.beginFill(0x666699, 0.5);
+			discoFleck.beginFill(0x000000, 0.5);
 			discoFleck.drawCircle(0, 0, randomIntFromInterval(0.3 * fleckSpacing, 1.3 * fleckSpacing));
 			discoFleck.endFill();
 			discoFleck.x = (i % Math.floor(windowWidth/fleckSpacing)) * randomIntFromInterval(fleckSpacing, 3 * fleckSpacing);
@@ -231,37 +230,29 @@ class BubblesArray extends Scene2D {
 	}
 }
 
-class SquareScene extends Scene2D {
+class OneCircleScene extends Scene2D {
 	start() {
 		super.start();
-		let numberOfSquares = 4;
-		// create many flecks
-		var blurFilter1 = new PIXI.filters.BlurFilter(1);
 		let squareSide = 150;
-		for (let i = 0; i < numberOfSquares; i++) {
-			let discoFleck = new PIXI.Graphics();
-			discoFleck.lineStyle(0x666699, 0.5);
-			discoFleck.drawRect(0, 0, squareSide, squareSide);
-			discoFleck.x = (i % Math.floor(windowWidth/squareSide)) * 300;
-			discoFleck.y = windowHeight/2 - squareSide/2;
-			discoFleck.filters = [blurFilter1];
-			this.container.addChild(discoFleck);
-		}
+		let test = new PIXI.Graphics();
+		test.lineStyle(1, 0xaaaaaa, 1);
+		test.drawCircle(0, 0, squareSide);
+		this.container.x = windowWidth/2;
+		this.container.y = windowHeight/2;
+		this.container.pivot.x = (this.container.width / 2) - (this.container.width / 2);
+		this.container.pivot.y = (this.container.height / 2) - (this.container.height / 2);
+		test.filters = [blurFilter1];
+		this.container.addChild(test);
 	}
 	audioTick(audioData) {
 		super.audioTick(audioData);
 		var volume = this.volume;
 		var isBeat = this.isBeat;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
-			var childrenArray = this.container.children;
-			childrenArray.forEach(function (child) {
-				child.scale.x = 1 + (volume * 1);
-				if(childrenArray.indexOf(child) % 2 == 0) {
-					if(isBeat) {
-						child.scale.x = 1 + (volume * 1);
-					}
-				}
-			});
+			if(isBeat) {
+				this.container.scale.x = 1 + (volume * 2);
+				this.container.scale.y = 1 + (volume * 2);
+			}
 		}
 	}
 }
@@ -272,20 +263,20 @@ let discoScene = new DiscoScene("disco");
 let triangleScene = new TriangleScene("triangle");
 let circlesArray = new CirclesArray("circlesArray");
 let bubblesArray = new BubblesArray("bubbles");
-let squareScene = new SquareScene("square");
+let oneCircleScene = new OneCircleScene("square");
 
 // Start of code to randomly select the 2D scenes
 let arrayOf2Dscenes = [
-	// discoScene,
-	// triangleScene,
-	// emptyScene,
-	// circlesArray,
-	// bubblesArray,
-	squareScene
+	emptyScene,
+	discoScene,
+	triangleScene,
+	circlesArray,
+	bubblesArray,
+	oneCircleScene
 ];
 
 // When the app loads, initially show a the disco scene
-var current2Dscene = squareScene;
+var current2Dscene = emptyScene;
 current2Dscene.start();
 
 // Then start choosing
@@ -303,14 +294,14 @@ function random2Dscene() {
 
 	// Make the picked scene the current scene.
 	current2Dscene = next2Dscene;
-	console.log('[2D] I have picked the scene with index: '
+	console.log('2D] Picked the scene with index: '
 		+ idx + ' scene: ' + next2Dscene.sceneName);
 
 	// Call this function again after the interval time.
 	// Also update the display.
 	let interval2D = randomIntFromInterval(scene2DintervalMin, scene2DintervalMax);
-	scene2DtimerDisplay.innerText = millisToMinutesAndSeconds(interval2D);
-	console.log('[2D] Will change 2D scene in ' + interval2D + ' ms');
+	scene2DtimerDisplay.innerText = millisToMinutesAndSeconds(interval2D) + current2Dscene.sceneName;
+	console.log('2D] Will change 2D scene in ' + interval2D + ' ms');
 	setTimeout(random2Dscene, interval2D);
 }
 
@@ -379,11 +370,11 @@ class Scene3D {
 		this.count = 0;
 	}
 	stop() {
-		console.log('Scene3D] stopping and destroying ' + this.sceneName);
+		//console.log('Scene3D] stopping and destroying ' + this.sceneName);
 		app3D.remove(this.container);
 	}
 	start() {
-		console.log('Scene2D] starting ' + this.sceneName);
+		//console.log('Scene2D] starting ' + this.sceneName);
 		this.container = new THREE.Group();
 		app3D.add(this.container);
 	}
@@ -407,9 +398,9 @@ class Scene3D {
 class SphereScene extends Scene3D {
 	start() {
 		super.start();
-		this.sphereColors = [{r:156,g:0,b:253},{r:0,g:255,b:249},{r:0,g:253,b:40},{r:245,g:253,b:0},{r:252,g:15,b:145}];
+		this.sphereColors = [{r:0,g:0,b:0},{r:100,g:100,b:100},{r:200,g:200,b:200},{r:255,g:255,b:255},{r:150,g:150,b:150}];
 		this.activeColor = 0;	// Index of sphere colors
-		let sphereRadius = 150;
+		let sphereRadius = 200;
 		let sphereSegments = 24;
 		let sphereRings = 24;
 		let sphereMaterial = new THREE.MeshLambertMaterial({
@@ -613,9 +604,9 @@ class OctahedronScene extends Scene3D {
 	start() {
 		super.start();
 		var geometry = new THREE.OctahedronGeometry(300);
-		var geometry2 = new THREE.OctahedronGeometry(450);
-		var octahedron = new THREE.Mesh( geometry, grayWireframeMaterial );
-		var octahedron2 = new THREE.Mesh( geometry2, grayWireframeMaterial );
+		var geometry2 = new THREE.OctahedronGeometry(100);
+		var octahedron = new THREE.Mesh( geometry, whiteWireframeMaterial );
+		var octahedron2 = new THREE.Mesh( geometry2, whiteWireframeMaterial );
 		this.container.add(octahedron);
 		this.container.add(octahedron2);
 	}
@@ -634,6 +625,37 @@ class OctahedronScene extends Scene3D {
 	}
 }
 
+/** Nested geometry*/
+class NestedScene extends Scene3D {
+	start() {
+		super.start();
+		let offset = 100;
+		var geometry1 = new THREE.BoxGeometry( offset, offset, offset, );
+		var geometry2 = new THREE.TetrahedronGeometry( offset * 2);
+		var geometry3 = new THREE.DodecahedronGeometry( offset * 3);
+		var mesh1 = new THREE.Mesh( geometry1, whiteWireframeMaterial );
+		var mesh2 = new THREE.Mesh( geometry2, whiteWireframeMaterial );
+		var mesh3 = new THREE.Mesh( geometry3, whiteWireframeMaterial );
+		this.container.add(mesh1);
+		this.container.add(mesh2);
+		this.container.add(mesh3);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volumeFactor = this.volume * 20;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				this.container.children[0].rotateX(0.01);
+				this.container.children[1].rotateX(0.01);
+			}
+			this.container.children[0].rotateY(0.02);
+			this.container.children[1].rotateY(0.01);
+			this.container.children[2].rotateY(0.005);
+		}
+	}
+}
+
 // Setup THREE.js stuff for rendering
 app3D.add(axis(300));	// debug x,y,z axis
 app3D.add(ambientLight);
@@ -648,6 +670,7 @@ let torusScene = new TorusScene("torus");
 let circleRotatingScene = new CircleRotatingScene("circleRotating");
 let knotScene = new KnotScene("knot");
 let octahedronScene = new OctahedronScene("octahedron");
+let nestedScene = new NestedScene("nested");
 
 // When app loads, initially show the sphere scene
 var current3Dscene = octahedronScene;
@@ -663,6 +686,7 @@ let arrayOf3Dscenes = [
 	// knotScene,
 	// empty3Dscene,
 	octahedronScene
+	// nestedScene
 ];
 random3Dscene();
 // Choose random 3D scenes
@@ -674,8 +698,8 @@ function random3Dscene() {
 	next3Dscene.start();
 	current3Dscene = next3Dscene;
 	let interval3D = randomIntFromInterval(scene3DintervalMin, scene3DintervalMax);
-	scene3DtimerDisplay.innerText = millisToMinutesAndSeconds(interval3D);
-	console.log('[3D] Will change 3D scene in ' + interval3D + ' ms');
+	scene3DtimerDisplay.innerText = millisToMinutesAndSeconds(interval3D) + current3Dscene.sceneName;
+	console.log('3D] Will change 3D scene in ' + interval3D + ' ms');
 	setTimeout(random3Dscene, interval3D);
 }
 
@@ -706,6 +730,9 @@ export default function(audioData) {
 	if(octahedronScene != null) {
 		octahedronScene.audioTick(audioData);
 	}
+	if(nestedScene != null) {
+		nestedScene.audioTick(audioData);
+	}
 
 	// 2D scenes
 	if(discoScene != null) {
@@ -723,21 +750,12 @@ export default function(audioData) {
 	if(bubblesArray != null) {
 		bubblesArray.audioTick(audioData);
 	}
-	if(squareScene != null) {
-		squareScene.audioTick(audioData);
+	if(oneCircleScene != null) {
+		oneCircleScene.audioTick(audioData);
 	}
 
 	// rerender scene every update
-	render();
-}
-/** Rendering function point of entry.
- * Renders the three.js scene (renderer object), updates the TWEENs,
- * and updates the PIXIjs objects.
- */
-function render() {
 	renderer.render(app3D, camera);
-	// update the tweens
-	TWEEN.update();
 }
 
 

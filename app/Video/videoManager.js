@@ -51,15 +51,15 @@ export default function () {
 		let videoInterval = randomIntFromInterval(intervalMin, intervalMax);
 		setTimeout(randomVideo, videoInterval);
 
-		// Format the interval for display in the corner
-		var minutes = Math.floor(videoInterval / 60000);
-		var seconds = videoInterval % 60;
-		videoTimerDisplay.innerText = minutes + ':' + seconds;
-
 		// Remove the 'current-video' class from the current video.
 		allLinks[currentVideo].classList.remove( 'current-video' );
 		let randomVideoIndex = randomIntFromInterval(0, linkList.length - 1);
 		playVideo(randomVideoIndex);
+
+		// Format the interval for display in the corner
+		var minutes = Math.floor(videoInterval / 60000);
+		var seconds = videoInterval % 60;
+		videoTimerDisplay.innerText = minutes + ':' + seconds + ';' + linkList[randomVideoIndex];
 	}
 
 	/** Play a video from the allLinks list with a given index.
@@ -73,16 +73,6 @@ export default function () {
 		video.load();
 		video.play();
 	}
-	
-	//// Old code for playing a video once another one ends
-	// video.addEventListener( 'ended', function () {
-	// 	allLinks[currentVideo].classList.remove( 'current-video' );
-	// 	let nextVideo = currentVideo + 1;
-	// 	if ( nextVideo >= linkNumber ) {
-	// 		nextVideo = 0;
-	// 	}
-	// 	playVideo( nextVideo );
-	// } );
 }
 
 function randomIntFromInterval(min,max)
