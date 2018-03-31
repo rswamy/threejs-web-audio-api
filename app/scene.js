@@ -80,6 +80,7 @@ class Scene2D {
 	}
 }
 
+/** Skinny rectangles randomly placed on the screen */
 class DiscoScene extends Scene2D {
 	start() {
 		super.start();
@@ -127,6 +128,7 @@ class DiscoScene extends Scene2D {
 	}
 }
 
+/** Fast triangles */
 class TriangleScene extends Scene2D {
 	start() {
 		super.start();
@@ -146,8 +148,11 @@ class TriangleScene extends Scene2D {
 		drawTriangle(-600);
 		drawTriangle(900);
 		drawTriangle(-900);
+		this.container.x = windowWidth/2;
+		this.container.y = windowHeight/2;
+		this.container.pivot.x = (this.container.width / 2) - (this.container.width / 2);
+		this.container.pivot.y = (this.container.height / 2) - (this.container.height / 2);
 		this.container.addChild(thing);
-
 	}
 	audioTick(audioData) {
 		super.audioTick(audioData);
@@ -156,16 +161,17 @@ class TriangleScene extends Scene2D {
 			var volume = this.volume;
 			var childrenArray = this.container.children;
 			childrenArray.forEach(function (child) {
-				child.scale.x = 5 * volume;
-				child.scale.y = 5 * volume;
+				child.scale.x = 2 * volume + 1;
+				child.scale.y = 2 * volume + 1;
 				if(isBeat) {
-					child.rotation += 30;
+					child.rotation += 3;
 				}
 			});
 		}
 	}
 }
 
+/** Circles in a 5x5 grid */
 class CirclesArray extends Scene2D {
 	start() {
 		super.start();
@@ -173,8 +179,8 @@ class CirclesArray extends Scene2D {
 		for(let row = 0; row < 5; row++) {
 			for(let col = 0; col < 5; col++) {
 				let graphics = new PIXI.Graphics();
-				graphics.lineStyle(1, 0xaaaaaa, 1);
-				graphics.beginFill(0x000000, 0.5);
+				graphics.lineStyle(1, 0x000000, 1);
+				graphics.beginFill(0x000000, 0.8);
 				graphics.drawCircle(windowWidth/2 - 2.5*offset + offset * row, windowHeight/2 + - 2.5*offset + offset * col, row + col * 20);
 				graphics.endFill();
 				this.container.addChild(graphics);
@@ -195,6 +201,7 @@ class CirclesArray extends Scene2D {
 	}
 }
 
+/** Bokeh almost */
 class BubblesArray extends Scene2D {
 	start() {
 		super.start();
@@ -205,7 +212,7 @@ class BubblesArray extends Scene2D {
 		var blurFilter1 = new PIXI.filters.BlurFilter();
 		for (let i = 0; i < numberOfFlecks; i++) {
 			let discoFleck = new PIXI.Graphics();
-			discoFleck.beginFill(0x000000, 0.5);
+			discoFleck.beginFill(0x000000, 0.3);
 			discoFleck.drawCircle(0, 0, randomIntFromInterval(0.3 * fleckSpacing, 1.3 * fleckSpacing));
 			discoFleck.endFill();
 			discoFleck.x = (i % Math.floor(windowWidth/fleckSpacing)) * randomIntFromInterval(fleckSpacing, 3 * fleckSpacing);
@@ -230,6 +237,7 @@ class BubblesArray extends Scene2D {
 	}
 }
 
+/** One soft circle sound reactive in center */
 class OneCircleScene extends Scene2D {
 	start() {
 		super.start();
@@ -257,6 +265,171 @@ class OneCircleScene extends Scene2D {
 	}
 }
 
+/** Draw a line each time there is a beat */
+class BeatLine extends Scene2D {
+	start() {
+		super.start();
+		let graphics = new PIXI.Graphics();
+		graphics.beginFill(0x000000, 0.01);
+		this.container.addChild(graphics);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		var container = this.container;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				container.children[0].moveTo(Math.random() * windowWidth, Math.random() * windowHeight);
+				container.children[0].bezierCurveTo(
+					Math.random() * windowWidth, Math.random() * windowHeight,
+					Math.random() * windowWidth, Math.random() * windowHeight,
+					Math.random() * windowWidth, Math.random() * windowHeight
+				);
+			}
+		}
+	}
+}
+
+/** Soft circles sound reactive in center */
+class CenteredCircles extends Scene2D {
+	start() {
+		super.start();
+		let radius = 50;
+		let test = new PIXI.Graphics();
+		test.lineStyle(1, 0xaaaaaa, 1);
+		test.drawCircle(0, 0, radius);
+		test.drawCircle(0, 0, radius*2);
+		test.drawCircle(0, 0, radius*3);
+		test.drawCircle(0, 0, radius*4);
+		this.container.x = windowWidth/2;
+		this.container.y = windowHeight/2;
+		this.container.pivot.x = (this.container.width / 2) - (this.container.width / 2);
+		this.container.pivot.y = (this.container.height / 2) - (this.container.height / 2);
+		test.filters = [blurFilter1];
+		this.container.addChild(test);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				this.container.scale.x = 1 + (volume * 2);
+				this.container.scale.y = 1 + (volume * 2);
+			}
+		}
+	}
+}
+
+class RaysScene extends Scene2D {
+	start() {
+		super.start();
+		let offset = 10;
+		for(let row = 0; row < 5; row++) {
+			for(let col = 0; col < 5; col++) {
+				let graphics = new PIXI.Graphics();
+				graphics.lineStyle(Math.random() * 4 + 0.2, 0xffffff, 0.7);
+				graphics.drawRect(
+					randomIntFromInterval(offset,windowWidth-offset),
+					randomIntFromInterval(offset,windowHeight-offset),
+					randomIntFromInterval(30,50),
+					randomIntFromInterval(30,50));
+				this.container.addChild(graphics);
+			}
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			childrenArray.forEach(function (child) {
+				if(childrenArray.indexOf(child) % 5 == 0) {
+					child.position.y = 10 + volume * 15;
+				}
+				if(childrenArray.indexOf(child) %3 == 0) {
+					child.position.x = 10 + volume * 15;
+				}
+				else {
+					child.rotation = 0.001
+				}
+			})
+		}
+	}
+}
+
+class TallRectangles extends Scene2D {
+	start() {
+		super.start();
+		let offset = 10;
+		for(let row = 0; row < 5; row++) {
+			for(let col = 0; col < 5; col++) {
+				let graphics = new PIXI.Graphics();
+				graphics.lineStyle(1 + 0.2, 0xffffff, 0.8);
+				graphics.drawRect(
+					randomIntFromInterval(offset,windowWidth-offset),
+					randomIntFromInterval(offset,windowHeight-offset),
+					randomIntFromInterval(10,30),
+					randomIntFromInterval(100,150));
+				graphics.filters = [blurFilter1]
+				this.container.addChild(graphics);
+			}
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			childrenArray.forEach(function (child) {
+				if(childrenArray.indexOf(child) % 5 == 0) {
+					child.position.y = 10 + volume * 15;
+				}
+				if(childrenArray.indexOf(child) %3 == 0) {
+					child.position.x = 10 + volume * 15;
+				}
+			})
+		}
+	}
+}
+
+/** Attempt at centering a polygon */
+class CenteredPolygon extends Scene2D {
+	start() {
+		super.start();
+		let thing = new PIXI.Graphics();
+		thing.lineStyle(1, 0xffffff, 0.8);
+		function drawTriangle(xOffset, triangleSize) {
+			thing.moveTo(xOffset, - triangleSize/2);
+			thing.lineTo(triangleSize/2 + xOffset, triangleSize/2);
+			thing.lineTo(-triangleSize/2 + xOffset, triangleSize/2);
+			thing.lineTo(xOffset, - triangleSize/2);
+		}
+		drawTriangle(-200, 100);
+		drawTriangle(-100, 150);
+		drawTriangle(0, 200);
+		drawTriangle(100, 150);
+		drawTriangle(200, 100);
+		this.container.x = windowWidth/2;
+		this.container.y = windowHeight/2;
+		this.container.pivot.x = (this.container.width / 2) - (this.container.width / 2);
+		this.container.pivot.y = (this.container.height / 2) - (this.container.height / 2);
+		this.container.addChild(thing);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				this.container.scale.x = 1 + (volume * 2);
+				this.container.scale.y = 1 + (volume * 2);
+			}
+		}
+	}
+}
+
 // Create a list of scenes
 let emptyScene = new Scene2D("empty");
 let discoScene = new DiscoScene("disco");
@@ -264,15 +437,26 @@ let triangleScene = new TriangleScene("triangle");
 let circlesArray = new CirclesArray("circlesArray");
 let bubblesArray = new BubblesArray("bubbles");
 let oneCircleScene = new OneCircleScene("square");
+let beatLine = new BeatLine("beatLine");
+let centeredCircles = new CenteredCircles("centered");
+let rays = new RaysScene("rays");
+let tallRectangles = new TallRectangles("tallRectangles");
+let centeredPolygon = new CenteredPolygon("tallRectangles");
 
 // Start of code to randomly select the 2D scenes
 let arrayOf2Dscenes = [
-	emptyScene,
-	discoScene,
-	triangleScene,
-	circlesArray,
-	bubblesArray,
-	oneCircleScene
+	// emptyScene,
+	// discoScene,
+	// triangleScene,
+	// circlesArray,
+	// bubblesArray,
+	// oneCircleScene,
+	// triangleScene,
+	// beatLine,
+	// centeredCircles,
+	// rays,
+	// tallRectangles,
+	centeredPolygon
 ];
 
 // When the app loads, initially show a the disco scene
@@ -345,12 +529,21 @@ var whiteWireframeMaterial = new THREE.MeshBasicMaterial( {
 	color: 0xffffff,
 	wireframe: true
 } );
+var medGrayWireframeMaterial = new THREE.MeshBasicMaterial( {
+	color: 0xaaaaaa,
+	wireframe: true
+} );
+
 var grayPurpleWireframeMaterial = new THREE.MeshBasicMaterial( {
 	color: 0x666699,
 	wireframe: true
 } );
 var grayWireframeMaterial = new THREE.MeshBasicMaterial( {
 	color: 0x7f7f7f,
+	wireframe: true
+} );
+var darkGrayWireframeMaterial = new THREE.MeshBasicMaterial( {
+	color: 0x676767,
 	wireframe: true
 } );
 var blackWireframeMaterial = new THREE.MeshBasicMaterial( {
@@ -388,13 +581,7 @@ class Scene3D {
 	}
 }
 
-
-/**
- *  Sphere
- *  ------
- *  radius dictates size, segments and rings dictates polygon count
- *  while ambient light adds light to all angles
- */
+/** sphere */
 class SphereScene extends Scene3D {
 	start() {
 		super.start();
@@ -429,14 +616,7 @@ class SphereScene extends Scene3D {
 	}
 }
 
-
-/**
- *  Plane
- *  ------
- *  pointlight adds more direct lighting
- *  while ambient light adds light to all angles
- */
-
+/** Plane */
 class PlaneScene extends Scene3D {
 	start() {
 		super.start();
@@ -475,11 +655,7 @@ class PlaneScene extends Scene3D {
 	}
 }
 
-
-/**
- *  sticks
- *  ------
- */
+/** sticks */
 class StickScene extends Scene3D {
 	start() {
 		super.start();
@@ -634,8 +810,8 @@ class NestedScene extends Scene3D {
 		var geometry2 = new THREE.TetrahedronGeometry( offset * 2);
 		var geometry3 = new THREE.DodecahedronGeometry( offset * 3);
 		var mesh1 = new THREE.Mesh( geometry1, whiteWireframeMaterial );
-		var mesh2 = new THREE.Mesh( geometry2, whiteWireframeMaterial );
-		var mesh3 = new THREE.Mesh( geometry3, whiteWireframeMaterial );
+		var mesh2 = new THREE.Mesh( geometry2, grayWireframeMaterial );
+		var mesh3 = new THREE.Mesh( geometry3, grayPurpleWireframeMaterial );
 		this.container.add(mesh1);
 		this.container.add(mesh2);
 		this.container.add(mesh3);
@@ -655,6 +831,236 @@ class NestedScene extends Scene3D {
 		}
 	}
 }
+/** 2 icosahedrons */
+class DarkIcosahedron extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.IcosahedronGeometry( 200);
+		var geometry2 = new THREE.IcosahedronGeometry( 50);
+		var mesh1 = new THREE.Mesh( geometry1, grayWireframeMaterial );
+		var mesh2 = new THREE.Mesh( geometry2, grayWireframeMaterial );
+		this.container.add(mesh1);
+		this.container.add(mesh2);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volumeFactor = this.volume * 20;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				this.container.children[0].rotateX(0.001);
+			}
+			this.container.children[1].rotateY(-0.002);
+		}
+	}
+}
+
+/** moon around a planet, kind of.... */
+class MoonScene extends Scene3D {
+	start() {
+		super.start();
+		// parent
+		let parent = new THREE.Object3D();
+		this.container.add( parent );
+		// pivots
+		var pivot1 = new THREE.Object3D();
+		var pivot2 = new THREE.Object3D();
+		var pivot3 = new THREE.Object3D();
+		pivot1.rotation.z = 0;
+		pivot2.rotation.z = 2 * Math.PI / 3;
+		pivot3.rotation.z = 4 * Math.PI / 3;
+		parent.add( pivot1 );
+		parent.add( pivot2 );
+		parent.add( pivot3 );
+		var geometry = new THREE.SphereGeometry(200);
+		// mesh
+		var mesh1 = new THREE.Mesh( geometry, grayPurpleWireframeMaterial );
+		var mesh2 = new THREE.Mesh( geometry, medGrayWireframeMaterial );
+		var mesh3 = new THREE.Mesh( geometry, medGrayWireframeMaterial );
+		mesh1.position.y = 500;
+		mesh2.position.x = 300;
+		mesh3.position.z = 400;
+		pivot1.add( mesh1 );
+		pivot2.add( mesh2 );
+		pivot3.add( mesh3 );
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volumeFactor = this.volume * 20;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				this.container.children[0].rotateX(0.001);
+			}
+			this.container.children[0].rotateY(-0.002);
+		}
+	}
+}
+
+/** HoopScene */
+class HoopScene extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.TorusGeometry( 250, 10, 3, 50 );
+		var geometry2 = new THREE.TorusGeometry( 200, 10, 3, 50 );
+		var geometrySide1 = new THREE.TorusGeometry( 300, 3, 3, 50 );
+		var mainCircle = new THREE.Mesh( geometry1, whiteWireframeMaterial );
+		var mainCircle2 = new THREE.Mesh( geometry2, whiteWireframeMaterial );
+		var sideCircle1 = new THREE.Mesh( geometrySide1, whiteWireframeMaterial );
+		var sideCircle2 = new THREE.Mesh( geometrySide1, whiteWireframeMaterial );
+		this.container.add(sideCircle1);
+		this.container.add(sideCircle2);
+		this.container.add(mainCircle);
+		this.container.add(mainCircle2);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volumeFactor = this.volume * 20;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				this.container.children[0].rotateX(0.01);
+				this.container.children[1].rotateY(0.01);
+			}
+			this.container.children[2].rotateZ(0.02);
+			this.container.children[3].rotateY(0.005);
+		}
+	}
+}
+
+/** Tetrahedrons */
+class Tetrahedrons extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.TetrahedronGeometry(200);
+		var geometry2 = new THREE.TetrahedronGeometry(200);
+		var geometry3 = new THREE.TetrahedronGeometry(200);
+		var geometry4 = new THREE.TetrahedronGeometry(200);
+		var tet1 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
+		var tet2 = new THREE.Mesh( geometry2, medGrayWireframeMaterial );
+		var tet3 = new THREE.Mesh( geometry3, medGrayWireframeMaterial );
+		var tet4 = new THREE.Mesh( geometry4, medGrayWireframeMaterial );
+		tet1.position.x = randomIntFromInterval(0, 500);
+		tet1.position.y = -1 * randomIntFromInterval(500, 0);
+		tet1.position.z = randomIntFromInterval(0, 300);
+		tet2.position.x = randomIntFromInterval(0, 500);
+		tet2.position.y = randomIntFromInterval(500, 0);
+		tet2.position.z = randomIntFromInterval(0, 300);
+		tet3.position.x = -1 * randomIntFromInterval(0, 500);
+		tet3.position.y = randomIntFromInterval(500, 0);
+		tet3.position.z = randomIntFromInterval(0, 300);
+		tet4.position.x = -1 * randomIntFromInterval(0, 500);
+		tet4.position.y = -1 * randomIntFromInterval(500, 0);
+		tet4.position.z = randomIntFromInterval(0, 300);
+		this.container.add(tet1);
+		this.container.add(tet2);
+		this.container.add(tet3);
+		this.container.add(tet4);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volumeFactor = this.volume * 20;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			this.container.rotateX(0.01);
+			if(isBeat) {
+				this.container.children[0].rotateX(0.01);
+				this.container.children[1].rotateY(0.01);
+			}
+			this.container.children[2].rotateZ(0.02);
+			this.container.children[3].rotateY(0.005);
+		}
+	}
+}
+
+/** DiscScene */
+class DiskScene extends Scene3D {
+	start() {
+		super.start();
+		super.start();
+		var geometry1 = new THREE.CircleGeometry(200, 32);
+		var disk1 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
+		var disk2 = new THREE.Mesh( geometry1, whiteWireframeMaterial );
+		var disk3 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
+		disk1.position.x = -300;
+		disk2.position.x = 0;
+		disk3.position.x = 300;
+		this.container.add(disk1);
+		this.container.add(disk2);
+		this.container.add(disk3);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.y += Math.PI/384;
+			}
+		}
+	}
+}
+
+/** ThreeTorusScene */
+class ThreeTorusScene extends Scene3D {
+	start() {
+		super.start();
+		super.start();
+		var geometry1 = new THREE.TorusGeometry( 200, 3, 16, 100 );
+		var disk1 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
+		var disk2 = new THREE.Mesh( geometry1, whiteWireframeMaterial );
+		var disk3 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
+		disk1.position.x = -300;
+		disk2.position.x = 0;
+		disk3.position.x = 300;
+		this.container.add(disk1);
+		this.container.add(disk2);
+		this.container.add(disk3);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.y += Math.PI/384;
+			}
+			this.container.rotation.x = 0.01
+		}
+	}
+}
+
+/** SynchronizedCones */
+class SynchronizedCones extends Scene3D {
+	start() {
+		super.start();
+		super.start();
+		var geometry1 = new THREE.CylinderGeometry( 150, 100, 200, 32 );
+		var disk1 = new THREE.Mesh( geometry1, darkGrayWireframeMaterial );
+		var disk2 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
+		var disk3 = new THREE.Mesh( geometry1, darkGrayWireframeMaterial );
+		disk1.position.x = -300;
+		disk2.position.x = 0;
+		disk3.position.x = 300;
+		disk1.position.z = 100;
+		disk2.position.z = 100;
+		disk3.position.z = 100;
+		this.container.add(disk1);
+		this.container.add(disk2);
+		this.container.add(disk3);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.y += Math.PI/384;
+				childrenArray[i].rotation.x += Math.PI/384;
+			}
+		}
+	}
+}
 
 // Setup THREE.js stuff for rendering
 app3D.add(axis(300));	// debug x,y,z axis
@@ -671,9 +1077,16 @@ let circleRotatingScene = new CircleRotatingScene("circleRotating");
 let knotScene = new KnotScene("knot");
 let octahedronScene = new OctahedronScene("octahedron");
 let nestedScene = new NestedScene("nested");
+let darkIcosahedron = new DarkIcosahedron("darkIcosohedron");
+let hoopScene = new HoopScene("hoopScene");
+let moonScene = new MoonScene("moonScene");
+let tetras = new Tetrahedrons("tetras");
+let diskScene = new DiskScene("tetras");
+let threeTorus = new ThreeTorusScene("tetras");
+let cones = new SynchronizedCones("cones");
 
 // When app loads, initially show the sphere scene
-var current3Dscene = octahedronScene;
+var current3Dscene = empty3Dscene;
 current3Dscene.start();
 
 // Then start choosing random 3D scenes:
@@ -685,8 +1098,15 @@ let arrayOf3Dscenes = [
 	// circleRotatingScene,
 	// knotScene,
 	// empty3Dscene,
-	octahedronScene
-	// nestedScene
+	// octahedronScene,
+	// nestedScene,
+	// darkIcosahedron,
+	// hoopScene,
+	// moonScene,
+	// tetras,
+	// diskScene,
+	// threeTorus,
+	cones
 ];
 random3Dscene();
 // Choose random 3D scenes
@@ -733,6 +1153,27 @@ export default function(audioData) {
 	if(nestedScene != null) {
 		nestedScene.audioTick(audioData);
 	}
+	if(darkIcosahedron != null) {
+		darkIcosahedron.audioTick(audioData);
+	}
+	if(hoopScene != null) {
+		hoopScene.audioTick(audioData);
+	}
+	if(moonScene != null) {
+		moonScene.audioTick(audioData);
+	}
+	if(tetras != null) {
+		tetras.audioTick(audioData);
+	}
+	if(diskScene != null) {
+		diskScene.audioTick(audioData);
+	}
+	if(threeTorus != null) {
+		threeTorus.audioTick(audioData);
+	}
+	if(cones != null) {
+		cones.audioTick(audioData);
+	}
 
 	// 2D scenes
 	if(discoScene != null) {
@@ -752,6 +1193,21 @@ export default function(audioData) {
 	}
 	if(oneCircleScene != null) {
 		oneCircleScene.audioTick(audioData);
+	}
+	if(beatLine != null) {
+		beatLine.audioTick(audioData);
+	}
+	if(centeredCircles != null) {
+		centeredCircles.audioTick(audioData);
+	}
+	if(rays != null) {
+		rays.audioTick(audioData);
+	}
+	if(tallRectangles != null) {
+		tallRectangles.audioTick(audioData);
+	}
+	if(centeredPolygon != null) {
+		centeredPolygon.audioTick(audioData);
 	}
 
 	// rerender scene every update
