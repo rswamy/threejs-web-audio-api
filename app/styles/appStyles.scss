@@ -34,18 +34,17 @@ body {
 #timers {
   position: fixed;
   bottom: 0;
-  color: #ffffff;
+  color: #b7b7b7;
 }
 
 #videoTimer {
   position: fixed;
   bottom: 0;
-  color: #ffffff;
 }
 
 // Video stuff
 video {
-  filter: grayscale(1) brightness(0.3);
+  //filter: grayscale(1) brightness(0.3);
 }
 
 .fullscreen-bg {

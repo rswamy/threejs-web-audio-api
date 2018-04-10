@@ -6,12 +6,54 @@ import TWEEN from './Tween/Tween';
 import * as PIXI from 'pixi.js';
 import axis from './Debug/axis';
 
+// KEYBOARD CONTROLS
+// 		Keyboard tester:
+// 			window.addEventListener('keypress', function (e) {alert(e.keyCode)})
+/*
+   2D   3D
+   |    |
+ [ 1 ][ 2 ] ----- start
+  [ Q ][ W ] ---- stop
+   [ A ][ S ][ D ] --- random
+     [ Z ][ X ] - empty room
+ */
+window.addEventListener('keypress', function (e) {
+	switch(e.keyCode) {
+		case 49: // 1
+			current2Dscene.start();
+			break;
+		case 113: // Q
+			current2Dscene.stop();
+			break;
+		case 97: // A
+			random2Dscene();
+			break;
+		case 122: // Z
+			current2Dscene.stop();
+			emptyScene.start();
+			break;
+		case 119: // W
+			current3Dscene.stop();
+			break;
+		case 50: // 2
+			current3Dscene.start();
+			break;
+		case 115: // S
+			random3Dscene();
+			break;
+		case 120: // X
+			current3Dscene.stop();
+			empty3Dscene.start();
+			break;
+	}
+}, false);
+
 const windowWidth = window.innerWidth;
 const windowHeight = window.innerHeight;
-const scene2DintervalMin = 18000;
-const scene2DintervalMax = 50000;
-const scene3DintervalMin = 18000;
-const scene3DintervalMax = 50000;
+const scene2DintervalMin = 60*1000*5; // 5min
+const scene2DintervalMax = 60*1000*10; //20min
+const scene3DintervalMin = 60*1000*5;
+const scene3DintervalMax = 60*1000*10;
 
 // Make timer for all timers
 let timers = document.createElement("ul");
@@ -394,7 +436,7 @@ class TallRectangles extends Scene2D {
 	}
 }
 
-/** Attempt at centering a polygon */
+/** Triangles in a row in the center */
 class CenteredPolygon extends Scene2D {
 	start() {
 		super.start();
@@ -430,6 +472,31 @@ class CenteredPolygon extends Scene2D {
 	}
 }
 
+/** Triangles in a row in the center, not audioreactive */
+class FixedTriangleRow extends Scene2D {
+	start() {
+		super.start();
+		let thing = new PIXI.Graphics();
+		thing.lineStyle(1, 0xffffff, 0.8);
+		function drawTriangle(xOffset, triangleSize) {
+			thing.moveTo(xOffset, - triangleSize/2);
+			thing.lineTo(triangleSize/2 + xOffset, triangleSize/2);
+			thing.lineTo(-triangleSize/2 + xOffset, triangleSize/2);
+			thing.lineTo(xOffset, - triangleSize/2);
+		}
+		drawTriangle(-200, 100);
+		drawTriangle(-100, 150);
+		drawTriangle(0, 200);
+		drawTriangle(100, 150);
+		drawTriangle(200, 100);
+		this.container.x = windowWidth/2;
+		this.container.y = windowHeight/2;
+		this.container.pivot.x = (this.container.width / 2) - (this.container.width / 2);
+		this.container.pivot.y = (this.container.height / 2) - (this.container.height / 2);
+		this.container.addChild(thing);
+	}
+}
+
 // Create a list of scenes
 let emptyScene = new Scene2D("empty");
 let discoScene = new DiscoScene("disco");
@@ -442,21 +509,26 @@ let centeredCircles = new CenteredCircles("centered");
 let rays = new RaysScene("rays");
 let tallRectangles = new TallRectangles("tallRectangles");
 let centeredPolygon = new CenteredPolygon("tallRectangles");
+let fixedTriangles = new FixedTriangleRow("fixedTriangles");
 
 // Start of code to randomly select the 2D scenes
 let arrayOf2Dscenes = [
-	// emptyScene,
-	// discoScene,
-	// triangleScene,
-	// circlesArray,
-	// bubblesArray,
-	// oneCircleScene,
-	// triangleScene,
-	// beatLine,
-	// centeredCircles,
-	// rays,
-	// tallRectangles,
-	centeredPolygon
+	emptyScene,
+	emptyScene,
+	emptyScene,
+	emptyScene,
+	discoScene,
+	triangleScene,
+	circlesArray,
+	bubblesArray,
+	oneCircleScene,
+	triangleScene,
+	beatLine,
+	centeredCircles,
+	rays,
+	tallRectangles,
+	centeredPolygon,
+	fixedTriangles
 ];
 
 // When the app loads, initially show a the disco scene
@@ -587,7 +659,7 @@ class SphereScene extends Scene3D {
 		super.start();
 		this.sphereColors = [{r:0,g:0,b:0},{r:100,g:100,b:100},{r:200,g:200,b:200},{r:255,g:255,b:255},{r:150,g:150,b:150}];
 		this.activeColor = 0;	// Index of sphere colors
-		let sphereRadius = 200;
+		let sphereRadius = 500;
 		let sphereSegments = 24;
 		let sphereRings = 24;
 		let sphereMaterial = new THREE.MeshLambertMaterial({
@@ -609,9 +681,9 @@ class SphereScene extends Scene3D {
 				this.activeColor = this.activeColor < this.sphereColors.length - 1 ? this.activeColor + 1 : 0;
 			}
 			// change sphere size based on volume
-			sphere.scale.x = .3 + (this.volume / 2);
-			sphere.scale.y = .3 + (this.volume / 2);
-			sphere.scale.z = .3 + (this.volume / 2);
+			sphere.scale.x = .2 + (this.volume / 2);
+			sphere.scale.y = .2 + (this.volume / 2);
+			sphere.scale.z = .2 + (this.volume / 2);
 		}
 	}
 }
@@ -831,6 +903,7 @@ class NestedScene extends Scene3D {
 		}
 	}
 }
+
 /** 2 icosahedrons */
 class DarkIcosahedron extends Scene3D {
 	start() {
@@ -1005,7 +1078,6 @@ class DiskScene extends Scene3D {
 class ThreeTorusScene extends Scene3D {
 	start() {
 		super.start();
-		super.start();
 		var geometry1 = new THREE.TorusGeometry( 200, 3, 16, 100 );
 		var disk1 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
 		var disk2 = new THREE.Mesh( geometry1, whiteWireframeMaterial );
@@ -1091,22 +1163,25 @@ current3Dscene.start();
 
 // Then start choosing random 3D scenes:
 let arrayOf3Dscenes = [
-	// sphereScene,
-	// planeScene,
-	// stickScene,
-	// torusScene,
-	// circleRotatingScene,
-	// knotScene,
-	// empty3Dscene,
-	// octahedronScene,
-	// nestedScene,
-	// darkIcosahedron,
-	// hoopScene,
-	// moonScene,
-	// tetras,
-	// diskScene,
-	// threeTorus,
-	cones
+	empty3Dscene,
+	empty3Dscene,
+	empty3Dscene,
+	sphereScene,
+	planeScene,
+	stickScene,
+	torusScene,
+	circleRotatingScene,
+	knotScene,
+	octahedronScene,
+	nestedScene,
+	darkIcosahedron,
+	hoopScene,
+	moonScene,
+	tetras,
+	diskScene,
+	threeTorus,
+	cones,
+	hoopScene
 ];
 random3Dscene();
 // Choose random 3D scenes
@@ -1117,6 +1192,8 @@ function random3Dscene() {
 	current3Dscene.stop();
 	next3Dscene.start();
 	current3Dscene = next3Dscene;
+	console.log('3D] Picked the scene with index: '
+		+ idx + ' scene: ' + next3Dscene.sceneName);
 	let interval3D = randomIntFromInterval(scene3DintervalMin, scene3DintervalMax);
 	scene3DtimerDisplay.innerText = millisToMinutesAndSeconds(interval3D) + current3Dscene.sceneName;
 	console.log('3D] Will change 3D scene in ' + interval3D + ' ms');
@@ -1225,7 +1302,7 @@ function randomIntFromInterval(min, max) {
 // Convert milliseconds to mm:ss
 function millisToMinutesAndSeconds(millis) {
 	var minutes = Math.floor(millis / 60000);
-	var seconds = ((millis % 60000) / 1000).toFixed(0);
+	var seconds = millis % 60;
 	return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
 }
 

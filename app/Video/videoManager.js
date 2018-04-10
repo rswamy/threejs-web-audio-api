@@ -60,6 +60,7 @@ export default function () {
 		var minutes = Math.floor(videoInterval / 60000);
 		var seconds = videoInterval % 60;
 		videoTimerDisplay.innerText = minutes + ':' + seconds + ';' + linkList[randomVideoIndex];
+		console.log('Video] Picked the VIDEO with name: ' + linkList[randomVideoIndex] + ' INTERVAL: ' + videoInterval + ' ms.');
 	}
 
 	/** Play a video from the allLinks list with a given index.
@@ -73,6 +74,12 @@ export default function () {
 		video.load();
 		video.play();
 	}
+
+	window.addEventListener('keypress', function (e) {
+		if(e.keyCode == 100) {
+			randomVideo();
+		}
+	});
 }
 
 function randomIntFromInterval(min,max)
