@@ -6,10 +6,11 @@ import TWEEN from './Tween/Tween';
 import * as PIXI from 'pixi.js';
 import axis from './Debug/axis';
 
-// KEYBOARD CONTROLS
-// 		Keyboard tester:
-// 			window.addEventListener('keypress', function (e) {alert(e.keyCode)})
-/*
+/* KEYBOARD CONTROLS
+ 	Video controls are in the videoManager.
+ 	Keyboard tester:
+ 			window.addEventListener('keypress', function (e) {alert(e.keyCode)})
+
    2D   3D
    |    |
  [ 1 ][ 2 ] ----- start
@@ -102,6 +103,7 @@ class Scene2D {
 		var beatCutoff = null;
 		var volume = null;
 		this.count = 0;
+		this.speed = 0.01;
 	}
 	stop() {
 		//console.log('Scene2D] stopping and destroying ' + this.sceneName);
@@ -508,7 +510,7 @@ let beatLine = new BeatLine("beatLine");
 let centeredCircles = new CenteredCircles("centered");
 let rays = new RaysScene("rays");
 let tallRectangles = new TallRectangles("tallRectangles");
-let centeredPolygon = new CenteredPolygon("tallRectangles");
+let centeredPolygon = new CenteredPolygon("audioTriangles");
 let fixedTriangles = new FixedTriangleRow("fixedTriangles");
 
 // Start of code to randomly select the 2D scenes

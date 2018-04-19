@@ -1,10 +1,23 @@
-# THREE.js and the Web Audio API, best friends forever
-A simple starter project for working with three.js and the web audio api. A huge portion of this code is taken from http://www.airtightinteractive.com/2013/10/making-audio-reactive-visuals/. I simply cleaned it up and seperated some of the components. Currently only input from the mic is supported but I want to add support for streaming files as well.
+# homemade VJ rig for techno shows, 2018
+Super basic javascript project with audio-reactive elements in THREE.js and pixi.js using the mic input (uses web audio API). Used at a few techno shows by running chrome in fullscreen mode on a projector.
+
+Disclaimer: This is pretty much hardcoded for a specific application and artist, so ymmv in using this code elsewhere.
+
+Code for audio reactivity forked from threejs-web-audio-api project under the MIT license.
 
 ### What's in it?
-- Basic THREE.js camera, scene, renderer, orbit controls
-- Web Audio API data via browser microphone. Currently tracks waveform, frequency levels, average volume and beat.
+
+There are a few layers of animations and graphics which can be shown and hidden using various keyboard keys:
+
+- "2D scenes" - pixijs container
+- "3D scenes" - threejs group
+- full-screen videos - NOTE these need to be added into the docs/video folder.
+
+The app itself contains
+
 - Debugger panel to show all audio data with visuals
+- Mic input from web audio API
+- Various mapping of keyboard keys for toggling different effects.
 
 ### To run
 

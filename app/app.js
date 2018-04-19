@@ -34,7 +34,7 @@ window.onload = function() {
 audioAnalyzer.start((audioData) => {
   // send data to canvas debugger
   debug.draw(audioData);
-  // send data to THREE.js scene
+  // send data to scenes (both 2d and 3d)
   scene(audioData);
 });
 

@@ -75,9 +75,20 @@ export default function () {
 		video.play();
 	}
 
+	/** Video keyboard control events
+	 * 
+	 */
 	window.addEventListener('keypress', function (e) {
-		if(e.keyCode == 100) {
-			randomVideo();
+		switch(e.keyCode) {
+			case 100:	// d	play random video
+				randomVideo();
+				break;
+			case 43: 	// +	make video lighter
+
+				break;
+			case 95: 	// -	make video darker
+
+				break;
 		}
 	});
 }
