@@ -83,12 +83,6 @@ export default function () {
 			case 100:	// d	play random video
 				randomVideo();
 				break;
-			case 43: 	// +	make video lighter
-
-				break;
-			case 95: 	// -	make video darker
-
-				break;
 		}
 	});
 }

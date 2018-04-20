@@ -1,10 +1,7 @@
 import THREE from 'three';
 import axis from './Debug/axis';
-
-/**
 import TWEEN from './Tween/Tween';
 import * as PIXI from 'pixi.js';
-import axis from './Debug/axis';
 
 /* KEYBOARD CONTROLS
  	Video controls are in the videoManager.
@@ -499,71 +496,6 @@ class FixedTriangleRow extends Scene2D {
 	}
 }
 
-// Create a list of scenes
-let emptyScene = new Scene2D("empty");
-let discoScene = new DiscoScene("disco");
-let triangleScene = new TriangleScene("triangle");
-let circlesArray = new CirclesArray("circlesArray");
-let bubblesArray = new BubblesArray("bubbles");
-let oneCircleScene = new OneCircleScene("square");
-let beatLine = new BeatLine("beatLine");
-let centeredCircles = new CenteredCircles("centered");
-let rays = new RaysScene("rays");
-let tallRectangles = new TallRectangles("tallRectangles");
-let centeredPolygon = new CenteredPolygon("audioTriangles");
-let fixedTriangles = new FixedTriangleRow("fixedTriangles");
-
-// Start of code to randomly select the 2D scenes
-let arrayOf2Dscenes = [
-	emptyScene,
-	emptyScene,
-	emptyScene,
-	emptyScene,
-	discoScene,
-	triangleScene,
-	circlesArray,
-	bubblesArray,
-	oneCircleScene,
-	triangleScene,
-	beatLine,
-	centeredCircles,
-	rays,
-	tallRectangles,
-	centeredPolygon,
-	fixedTriangles
-];
-
-// When the app loads, initially show a the disco scene
-var current2Dscene = emptyScene;
-current2Dscene.start();
-
-// Then start choosing
-random2Dscene();
-
-// Choose scene randomly from the array of available 2D scenes
-function random2Dscene() {
-	// Pick a scene from the array to start
-	let idx = randomIntFromInterval(0, arrayOf2Dscenes.length - 1);
-	var next2Dscene = arrayOf2Dscenes[idx];
-
-	// Stop the current scene and start the next scene
-	current2Dscene.stop();
-	next2Dscene.start();
-
-	// Make the picked scene the current scene.
-	current2Dscene = next2Dscene;
-	console.log('2D] Picked the scene with index: '
-		+ idx + ' scene: ' + next2Dscene.sceneName);
-
-	// Call this function again after the interval time.
-	// Also update the display.
-	let interval2D = randomIntFromInterval(scene2DintervalMin, scene2DintervalMax);
-	scene2DtimerDisplay.innerText = millisToMinutesAndSeconds(interval2D) + current2Dscene.sceneName;
-	console.log('2D] Will change 2D scene in ' + interval2D + ' ms');
-	setTimeout(random2Dscene, interval2D);
-}
-
-
 
 /** * * * * * * * * * * 3D Scene setup * * * * * * * * * * * * * * *
  *  THREEjs initialization
@@ -599,8 +531,33 @@ let ambientLight = new THREE.AmbientLight(0x404040);
 pointLight.position.set(10, 50, 130);
 
 /* Materials */
+var meshDepthMaterial = new THREE.MeshDepthMaterial();
+var meshLambertWire = new THREE.MeshLambertMaterial({
+	wireframe: true
+});
+var meshNormal = new THREE.MeshNormalMaterial({
+	wireframe: true
+});
+
+var whitePointsMaterial = new THREE.PointsMaterial( {
+	color: 0xffffff,
+	size: Math.random()*20
+} );
+
 var whiteWireframeMaterial = new THREE.MeshBasicMaterial( {
 	color: 0xffffff,
+	wireframe: true
+} );
+var whiteDashedLineMaterial = new THREE.LineBasicMaterial( {
+	color: 0xffffff,
+	dashSize: 1,
+	gapSize: 0.5,
+	wireframe: true
+} );
+var randomMaterial = new THREE.LineBasicMaterial( {
+	color: Math.random() * 0xffffff,
+	dashSize: 1,
+	gapSize: 0.5,
 	wireframe: true
 } );
 var medGrayWireframeMaterial = new THREE.MeshBasicMaterial( {
@@ -1052,7 +1009,6 @@ class Tetrahedrons extends Scene3D {
 class DiskScene extends Scene3D {
 	start() {
 		super.start();
-		super.start();
 		var geometry1 = new THREE.CircleGeometry(200, 32);
 		var disk1 = new THREE.Mesh( geometry1, medGrayWireframeMaterial );
 		var disk2 = new THREE.Mesh( geometry1, whiteWireframeMaterial );
@@ -1136,12 +1092,209 @@ class SynchronizedCones extends Scene3D {
 	}
 }
 
+/** Plane */
+class DotArray extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.CylinderGeometry( 250, 300, 16, 16 );
+		var numberOfDisks = 13;
+		var disk;
+		for(var i = 0; i < numberOfDisks; i++) {
+			disk = new THREE.LineSegments( geometry1, randomMaterial );
+			disk.rotation.x = Math.PI/numberOfDisks * i;
+			this.container.add(disk);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.y += Math.PI/384;
+				var color = Math.random();
+				childrenArray[i].material.color = new THREE.Color( color, color, color );
+				childrenArray[i].material.needsUpdate = true;
+				childrenArray[i].rotation.x += 0.001 * i;
+			}
+			this.container.rotation.x = 0.1;
+		}
+	}
+}
+
+/** A group of long boxes slowly rotating and flashing */
+class LongBoxes extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.BoxGeometry(
+			100,
+			1000,
+			100
+		);
+		var numberOfBoxes = 7;
+		var box;
+		for(var i = 0; i < numberOfBoxes; i++) {
+			box = new THREE.Mesh( geometry1, whiteWireframeMaterial );
+			// box.rotation.x = Math.PI/numberOfBoxes * i;
+			box.position.x = (100 * i)-numberOfBoxes*100/2
+			this.container.add(box);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.y += Math.PI/384;
+				var color = Math.random();
+				childrenArray[i].material.color = new THREE.Color( color, color, color );
+				childrenArray[i].material.needsUpdate = true;
+				childrenArray[i].rotation.y += 0.001 * i;
+				if(isBeat) {
+					var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
+					this.container.children[selectedBox].rotation.y -= 0.003
+				}
+			}
+			// this.container.rotation.x = 0.1;
+		}
+	}
+}
+
+/** Dots slowly turning */
+class GalaxyDots extends Scene3D {
+	start() {
+		super.start();
+		var numberOfCircles = 6;
+		var box;
+		for(var i = 0; i < numberOfCircles; i++) {
+			box = new THREE.Points(
+				new THREE.CylinderGeometry(
+					randomIntFromInterval(30, 600),
+					randomIntFromInterval(30, 600),
+					100, 16
+				),
+				whitePointsMaterial
+			);
+			box.rotation.x = Math.PI/2;
+			this.container.add(box);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				var color = Math.random()-0.5;
+				childrenArray[i].rotation.y -= 0.0001 * i;
+				if(isBeat) {
+					var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
+					this.container.children[selectedBox].scale.x -= Math.random()*(0.003)+0.001
+					this.container.children[selectedBox].scale.z += Math.random()*(0.003)+0.001
+				}
+			}
+		}
+	}
+}
+
+/** concentric cylinders flashing and turning on beat */
+class FlashingTunnelCircles extends Scene3D {
+	start() {
+		super.start();
+		var numberOfCircles = 4;
+		var box;
+		for(var i = 0; i < numberOfCircles; i++) {
+			box = new THREE.Mesh(
+				new THREE.CylinderGeometry(randomIntFromInterval(400,600), 500, 300, 16),
+				whiteWireframeMaterial
+			);
+			box.rotation.x = Math.PI/2;
+			this.container.add(box);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				var color = Math.random()-0.5;
+				childrenArray[i].material.color = new THREE.Color( color, color, color );
+				childrenArray[i].material.needsUpdate = true;
+				childrenArray[i].rotation.y -= 0.0001 * i;
+
+			}
+			if(isBeat) {
+				this.container.rotation.x = 0.1;
+				var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
+				this.container.children[selectedBox].rotation.y -= Math.random()*(0.003)+0.001
+			}
+		}
+	}
+}
+
+/** rotate torus arcs that look like macaroni around each other */
+class RotateMacaroni extends Scene3D {
+	start() {
+		super.start();
+		var macaroni0 = new THREE.Mesh(
+			new THREE.TorusGeometry(
+				1*100 + 200, // radius
+				100,	// radius of tube
+				8,		// radial segments
+				8,		// tubular segments
+				Math.PI/2	// arc
+			), meshLambertWire
+		);
+		var macaroni1 = new THREE.Mesh(new THREE.TorusGeometry(2*100 + 200, 100, 8, 16, Math.PI), meshLambertWire);
+		var macaroni2 = new THREE.Mesh(new THREE.TorusGeometry(3*100 + 200, 100, 8, 16, Math.PI), meshLambertWire);
+		var macaroni3 = new THREE.Mesh(new THREE.TorusGeometry(4*100 + 200, 100, 8, 16, Math.PI), meshLambertWire);
+		var macaroni4 = new THREE.Mesh(new THREE.TorusGeometry(5*100 + 200, 100, 8, 16, Math.PI), meshLambertWire);
+		macaroni1.rotation.y = Math.PI/2;
+		macaroni2.rotation.z = -Math.PI/2;
+		macaroni3.rotation.x = Math.PI/3;
+		macaroni4.rotation.y = -Math.PI/2;
+		this.container.add(macaroni0);
+		this.container.add(macaroni1);
+		this.container.add(macaroni2);
+		this.container.add(macaroni3);
+		this.container.add(macaroni4);
+		this.container.rotation.y = Math.PI/4;
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.z -= Math.random()*(0.003)+0.005;
+				childrenArray[i].rotation.y -= 0.0001 * Math.sin(this.count);
+			}
+			if(isBeat) {
+				var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
+				childrenArray[selectedBox].rotation.x -= 0.005
+				this.container.rotation.x = 0.1;
+			}
+		}
+	}
+}
+
+
 // Setup THREE.js stuff for rendering
 app3D.add(axis(300));	// debug x,y,z axis
 app3D.add(ambientLight);
 app3D.add(pointLight);
 
-// Create list of scenes
+/** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * * * * * * * * * * * 2D and 3D SCENE PLAYBACK CONTROL LOGIC * * * * * * * * * * * * * * *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ */
+// Create list of 3D scenes
 let empty3Dscene = new Scene3D("empty");
 let sphereScene = new SphereScene("sphere");
 let planeScene = new PlaneScene("plane");
@@ -1158,34 +1311,108 @@ let tetras = new Tetrahedrons("tetras");
 let diskScene = new DiskScene("tetras");
 let threeTorus = new ThreeTorusScene("tetras");
 let cones = new SynchronizedCones("cones");
+// new scenes
+let dotScene = new DotArray("dotArray");
+let longBoxScene = new LongBoxes("boxes");
+let galaxyDots = new GalaxyDots("galaxyDogs");
+let flashingTunnelCircles = new FlashingTunnelCircles("flashingTunnelCircles");
+let rotateMacaroni = new RotateMacaroni("rotateMacaroni");
 
-// When app loads, initially show the sphere scene
+// Create a list of 2D scenes
+let emptyScene = new Scene2D("empty");
+let discoScene = new DiscoScene("disco");
+let triangleScene = new TriangleScene("triangle");
+let circlesArray = new CirclesArray("circlesArray");
+let bubblesArray = new BubblesArray("bubbles");
+let oneCircleScene = new OneCircleScene("square");
+let beatLine = new BeatLine("beatLine");
+let centeredCircles = new CenteredCircles("centered");
+let rays = new RaysScene("rays");
+let tallRectangles = new TallRectangles("tallRectangles");
+let centeredPolygon = new CenteredPolygon("audioTriangles");
+let fixedTriangles = new FixedTriangleRow("fixedTriangles");
+
+// When app loads, initially show empty 2D and 3D scenes.
 var current3Dscene = empty3Dscene;
 current3Dscene.start();
 
-// Then start choosing random 3D scenes:
+var current2Dscene = emptyScene;
+current2Dscene.start();
+
+// Array of 3D scenes to choose from
 let arrayOf3Dscenes = [
-	empty3Dscene,
-	empty3Dscene,
-	empty3Dscene,
-	sphereScene,
-	planeScene,
-	stickScene,
-	torusScene,
-	circleRotatingScene,
-	knotScene,
-	octahedronScene,
-	nestedScene,
-	darkIcosahedron,
-	hoopScene,
-	moonScene,
-	tetras,
-	diskScene,
-	threeTorus,
-	cones,
-	hoopScene
+	// empty3Dscene,
+	// empty3Dscene,
+	// empty3Dscene,
+	// sphereScene,
+	// planeScene,
+	// stickScene,
+	// torusScene,
+	// circleRotatingScene,
+	// knotScene,
+	// octahedronScene,
+	// nestedScene,
+	// darkIcosahedron,
+	// hoopScene,
+	// moonScene,
+	// tetras,
+	// diskScene,
+	// threeTorus,
+	// cones,
+	// dotScene,
+	// longBoxScene,
+	// galaxyDots,
+	// flashingTunnelCircles,
+	rotateMacaroni
 ];
+
+// Array of 2D scenes to choose from
+let arrayOf2Dscenes = [
+	// emptyScene,
+	// emptyScene,
+	// emptyScene,
+	// emptyScene,
+	// discoScene,
+	// triangleScene,
+	// circlesArray,
+	// bubblesArray,
+	// oneCircleScene,
+	// triangleScene,
+	// beatLine,
+	// centeredCircles,
+	// rays,
+	// tallRectangles,
+	// centeredPolygon,
+	// fixedTriangles,
+	emptyScene
+];
+
+// Then start choosing a random 2D and random 3D scene
+random2Dscene();
 random3Dscene();
+
+// Choose scene randomly from the array of available 2D scenes
+function random2Dscene() {
+	// Pick a scene from the array to start
+	let idx = randomIntFromInterval(0, arrayOf2Dscenes.length - 1);
+	var next2Dscene = arrayOf2Dscenes[idx];
+
+	// Stop the current scene and start the next scene
+	current2Dscene.stop();
+	next2Dscene.start();
+
+	// Make the picked scene the current scene.
+	current2Dscene = next2Dscene;
+	console.log('2D] Picked the scene with index: '
+		+ idx + ' scene: ' + next2Dscene.sceneName);
+
+	// Call this function again after the interval time.
+	// Also update the display.
+	let interval2D = randomIntFromInterval(scene2DintervalMin, scene2DintervalMax);
+	scene2DtimerDisplay.innerText = millisToMinutesAndSeconds(interval2D) + current2Dscene.sceneName;
+	console.log('2D] Will change 2D scene in ' + interval2D + ' ms');
+	setTimeout(random2Dscene, interval2D);
+}
 // Choose random 3D scenes
 function random3Dscene() {
 	let idx = randomIntFromInterval(0, arrayOf3Dscenes.length - 1);
@@ -1210,7 +1437,24 @@ function random3Dscene() {
  */
 export default function(audioData) {
 
+	// Only feed audio data into the scenes that are currently on screen (not null).
+
 	// 3D scenes
+	if(rotateMacaroni != null) {
+		rotateMacaroni.audioTick(audioData);
+	}
+	if(flashingTunnelCircles != null) {
+		flashingTunnelCircles.audioTick(audioData);
+	}
+	if(galaxyDots != null) {
+		galaxyDots.audioTick(audioData);
+	}
+	if(longBoxScene != null) {
+		longBoxScene.audioTick(audioData);
+	}
+	if(dotScene != null) {
+		dotScene.audioTick(audioData);
+	}
 	if(sphereScene != null) {
 		sphereScene.audioTick(audioData);
 	}
@@ -1253,6 +1497,7 @@ export default function(audioData) {
 	if(cones != null) {
 		cones.audioTick(audioData);
 	}
+
 
 	// 2D scenes
 	if(discoScene != null) {
