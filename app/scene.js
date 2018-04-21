@@ -10,7 +10,7 @@ import * as PIXI from 'pixi.js';
 
    2D   3D
    |    |
- [ 1 ][ 2 ] ----- start
+ [ 1 ][ 2 ] ----- restart
   [ Q ][ W ] ---- stop
    [ A ][ S ][ D ] --- random
      [ Z ][ X ] - empty room
@@ -18,6 +18,7 @@ import * as PIXI from 'pixi.js';
 window.addEventListener('keypress', function (e) {
 	switch(e.keyCode) {
 		case 49: // 1
+			current2Dscene.stop();
 			current2Dscene.start();
 			break;
 		case 113: // Q
@@ -34,6 +35,7 @@ window.addEventListener('keypress', function (e) {
 			current3Dscene.stop();
 			break;
 		case 50: // 2
+			current3Dscene.stop();
 			current3Dscene.start();
 			break;
 		case 115: // S
@@ -104,7 +106,9 @@ class Scene2D {
 	}
 	stop() {
 		//console.log('Scene2D] stopping and destroying ' + this.sceneName);
-		this.container.destroy({children:true});
+		this.container.destroy({
+			children:true
+		});
 	}
 	start() {
 		//console.log('Scene2D] starting ' + this.sceneName);
@@ -216,28 +220,46 @@ class TriangleScene extends Scene2D {
 class CirclesArray extends Scene2D {
 	start() {
 		super.start();
-		let offset = 100;
-		for(let row = 0; row < 5; row++) {
-			for(let col = 0; col < 5; col++) {
-				let graphics = new PIXI.Graphics();
-				graphics.lineStyle(1, 0x000000, 1);
-				graphics.beginFill(0x000000, 0.8);
-				graphics.drawCircle(windowWidth/2 - 2.5*offset + offset * row, windowHeight/2 + - 2.5*offset + offset * col, row + col * 20);
-				graphics.endFill();
-				this.container.addChild(graphics);
+		// create disco ball flecks
+		let fleckSpacing = 100;
+		let numberOfFlecks = 30;
+		// create many flecks
+		for (let i = 0; i < numberOfFlecks; i++) {
+			let discoFleck = new PIXI.Graphics();
+			discoFleck.beginFill(0x000000, 0.5);
+			discoFleck.drawCircle(0, 0, randomIntFromInterval(0.3 * fleckSpacing, 1.3 * fleckSpacing));
+			discoFleck.endFill();
+			discoFleck.x = (i % Math.floor(windowWidth/fleckSpacing)) * randomIntFromInterval(fleckSpacing, 3 * fleckSpacing);
+			discoFleck.y = (i / 5) * fleckSpacing;
+			if(i % 2 == 0) {
+				discoFleck.filters = [blurFilter1];
 			}
+			else {
+				discoFleck.filters = [blurFilter2];
+			}
+			this.container.addChild(discoFleck);
 		}
 	}
 	audioTick(audioData) {
 		super.audioTick(audioData);
 		var volume = this.volume;
+		var isBeat = this.isBeat;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			var childrenArray = this.container.children;
 			childrenArray.forEach(function (child) {
-				if(childrenArray.indexOf(child) % 2 == 0) {
-					child.position.y = 1 + volume * 5;
+				if(childrenArray.indexOf(child) % 3 == 0) {
+					child.scale.x = 1 + (volume * 1);
+					if(isBeat) {
+						child.fillAlpha = 1;
+					}
+					else {
+						child.fillAlpha = 0.5;
+					}
 				}
-			})
+				if(childrenArray.indexOf(child) % 2 == 0) {
+					child.rotation += 0.01
+				}
+			});
 		}
 	}
 }
@@ -269,7 +291,7 @@ class BubblesArray extends Scene2D {
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			var childrenArray = this.container.children;
 			childrenArray.forEach(function (child) {
-				child.scale.x = 1 + (volume * 1);
+				child.scale.x = 1 + Math.cos(volume);
 				if(childrenArray.indexOf(child) % 2 == 0) {
 					child.rotation += 0.01
 				}
@@ -299,34 +321,11 @@ class OneCircleScene extends Scene2D {
 		var isBeat = this.isBeat;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			if(isBeat) {
-				this.container.scale.x = 1 + (volume * 2);
-				this.container.scale.y = 1 + (volume * 2);
-			}
-		}
-	}
-}
-
-/** Draw a line each time there is a beat */
-class BeatLine extends Scene2D {
-	start() {
-		super.start();
-		let graphics = new PIXI.Graphics();
-		graphics.beginFill(0x000000, 0.01);
-		this.container.addChild(graphics);
-	}
-	audioTick(audioData) {
-		super.audioTick(audioData);
-		var volume = this.volume;
-		var isBeat = this.isBeat;
-		var container = this.container;
-		if((this.container != null) && (typeof this.container != 'undefined')) {
-			if(isBeat) {
-				container.children[0].moveTo(Math.random() * windowWidth, Math.random() * windowHeight);
-				container.children[0].bezierCurveTo(
-					Math.random() * windowWidth, Math.random() * windowHeight,
-					Math.random() * windowWidth, Math.random() * windowHeight,
-					Math.random() * windowWidth, Math.random() * windowHeight
-				);
+				var childrenArray = this.container.children;
+				childrenArray.forEach(function (child) {
+					child.scale.x = 1 + (volume * 2);
+					child.scale.y = 1 + (volume * 2);
+				});
 			}
 		}
 	}
@@ -356,8 +355,12 @@ class CenteredCircles extends Scene2D {
 		var isBeat = this.isBeat;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			if(isBeat) {
-				this.container.scale.x = 1 + (volume * 2);
-				this.container.scale.y = 1 + (volume * 2);
+				var childrenArray = this.container.children;
+				childrenArray.forEach(function (child) {
+					child.scale.x = 1 + (volume * 2);
+					child.scale.y = 1 + (volume * 2);
+				})
+
 			}
 		}
 	}
@@ -377,6 +380,7 @@ class RaysScene extends Scene2D {
 					randomIntFromInterval(30,50),
 					randomIntFromInterval(30,50));
 				this.container.addChild(graphics);
+				graphics.filters = [blurFilter2]
 			}
 		}
 	}
@@ -413,7 +417,7 @@ class TallRectangles extends Scene2D {
 					randomIntFromInterval(offset,windowHeight-offset),
 					randomIntFromInterval(10,30),
 					randomIntFromInterval(100,150));
-				graphics.filters = [blurFilter1]
+				graphics.filters = [blurFilter2]
 				this.container.addChild(graphics);
 			}
 		}
@@ -447,6 +451,7 @@ class CenteredPolygon extends Scene2D {
 			thing.lineTo(-triangleSize/2 + xOffset, triangleSize/2);
 			thing.lineTo(xOffset, - triangleSize/2);
 		}
+		thing.filters = [blurFilter2]
 		drawTriangle(-200, 100);
 		drawTriangle(-100, 150);
 		drawTriangle(0, 200);
@@ -464,8 +469,11 @@ class CenteredPolygon extends Scene2D {
 		var isBeat = this.isBeat;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			if(isBeat) {
-				this.container.scale.x = 1 + (volume * 2);
-				this.container.scale.y = 1 + (volume * 2);
+				var childrenArray = this.container.children;
+				childrenArray.forEach(function (child) {
+					child.scale.x = 1 + (volume * 2);
+					child.scale.y = 1 + (volume * 2);
+				})
 			}
 		}
 	}
@@ -492,7 +500,22 @@ class FixedTriangleRow extends Scene2D {
 		this.container.y = windowHeight/2;
 		this.container.pivot.x = (this.container.width / 2) - (this.container.width / 2);
 		this.container.pivot.y = (this.container.height / 2) - (this.container.height / 2);
+		thing.filters = [blurFilter1];
 		this.container.addChild(thing);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			if(isBeat) {
+				var childrenArray = this.container.children;
+				childrenArray.forEach(function (child) {
+					child.scale.x = 1 + Math.cos(volume * 2);
+					child.scale.y = 1 + Math.cos(volume * 2);
+				});
+			}
+		}
 	}
 }
 
@@ -540,7 +563,7 @@ class VerticalRectangles extends Scene2D {
 	}
 }
 
-/** Horizontal lines on screen */
+/** these are actually vertical */
 class HorizontalLines extends Scene2D {
 	start() {
 		super.start();
@@ -549,12 +572,12 @@ class HorizontalLines extends Scene2D {
 		// create many flecks
 		for (let i = 0; i < numberOfFlecks; i++) {
 			let discoFleck = new PIXI.Graphics();
-			discoFleck.beginFill(0xffffff, 0.5);
+			discoFleck.beginFill(0xaaaaaa, 0.5);
 			discoFleck.drawRect(
+				windowWidth/numberOfFlecks * i,
 				0,
-				windowHeight/numberOfFlecks * i,
-				windowWidth,
-				5
+				5,
+				windowHeight,
 			);
 			discoFleck.endFill();
 			this.container.addChild(discoFleck);
@@ -569,11 +592,14 @@ class HorizontalLines extends Scene2D {
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			var childrenArray = this.container.children;
 			childrenArray.forEach(function (child) {
-				if(childrenArray.indexOf(child) % 3 == 0) {
-					child.scale.x = 1 + (volume * -1);
+				if(childrenArray.indexOf(child) % 2 == 0) {
+					child.scale.y = 1 + (volume * -1);
+				}
+				else {
+					child.scale.x = 2 + (volume);
 				}
 			});
-			blurFilter1.blur = 5 * (volume);
+			blurFilter1.blur = 9 * (volume);
 		}
 	}
 }
@@ -583,7 +609,7 @@ class CosineLines extends Scene2D {
 	start() {
 		super.start();
 		// create disco ball flecks
-		let numberOfFlecks = 7;
+		let numberOfFlecks = 16;
 		// create many flecks
 		for (let i = 0; i < numberOfFlecks; i++) {
 			let discoFleck = new PIXI.Graphics();
@@ -608,10 +634,10 @@ class CosineLines extends Scene2D {
 			var childrenArray = this.container.children;
 			childrenArray.forEach(function (child) {
 				if(childrenArray.indexOf(child) % 3 == 0) {
-					child.position.y += Math.cos(count) * 12;
+					child.position.y += Math.cos(count) * 30  + 0.001;
 				}
 			});
-			blurFilter1.blur = 5 * (volume);
+			blurFilter1.blur = 8 * (volume);
 		}
 	}
 }
@@ -661,7 +687,7 @@ var meshNormal = new THREE.MeshNormalMaterial({
 
 var whitePointsMaterial = new THREE.PointsMaterial( {
 	color: 0xffffff,
-	size: Math.random()*20
+	size: Math.random()*20 + 0.02
 } );
 
 var whiteWireframeMaterial = new THREE.MeshBasicMaterial( {
@@ -670,7 +696,7 @@ var whiteWireframeMaterial = new THREE.MeshBasicMaterial( {
 } );
 var whiteDashedLineMaterial = new THREE.LineDashedMaterial( {
 	color: 0xffffff,
-	dashSize: 1,
+	dashSize: 2,
 	gapSize: 0.5
 } );
 var randomMaterial = new THREE.LineDashedMaterial( {
@@ -748,7 +774,7 @@ class SphereScene extends Scene3D {
 			wireframe: true
 		});
 		let sphereGeometry = new THREE.SphereGeometry(sphereRadius, sphereSegments, sphereRings);
-		let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+		let sphere = new THREE.Points(sphereGeometry, whitePointsMaterial);
 		this.container.add(sphere);
 	}
 	audioTick(audioData) {
@@ -1359,6 +1385,49 @@ class FlashingTunnelCircles extends Scene3D {
 	}
 }
 
+/** concentric cylinders flashing and turning on beat */
+class FlashingTunnelCircles2 extends Scene3D {
+	start() {
+		super.start();
+		var numberOfCircles = 4;
+		var box;
+		for(var i = 0; i < numberOfCircles; i++) {
+			box = new THREE.LineSegments(
+				new THREE.CylinderGeometry(
+					randomIntFromInterval(400,600),
+					randomIntFromInterval(50,400),
+					200, 16),
+				whiteDashedLineMaterial
+			);
+			box.rotation.x = Math.PI/2;
+			this.container.add(box);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				var color = Math.random()-0.5 + 0.001;
+				childrenArray[i].rotation.y -= 0.0001 * i;
+				if(i%2 == 0) {
+					childrenArray[i].scale.x = 0.01 + 2 * Math.cos(this.count);
+					childrenArray[i].scale.y = 0.01 + 2 * Math.cos(this.count);
+				}
+			}
+			if(isBeat) {
+				this.container.rotation.x = 0.1;
+				var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
+				this.container.children[selectedBox].rotation.y -= Math.random()*(0.03)+0.001
+				childrenArray[i].material.color = new THREE.Color( color, color, color );
+				childrenArray[i].material.needsUpdate = true;
+			}
+		}
+	}
+}
+
 /** rotate torus arcs that look like macaroni around each other */
 class RotateMacaroni extends Scene3D {
 	start() {
@@ -1395,7 +1464,7 @@ class RotateMacaroni extends Scene3D {
 			var childrenArray = this.container.children;
 			for(let i = 0; i < childrenArray.length; i++) {
 				childrenArray[i].rotation.z -= Math.random()*(0.003)+0.005;
-				childrenArray[i].rotation.y -= 0.0001 * Math.sin(this.count);
+				childrenArray[i].rotation.y -= 0.0001 * Math.sin(this.count)  + 0.001;
 			}
 			if(isBeat) {
 				var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
@@ -1427,12 +1496,55 @@ class TunnelAttempt extends Scene3D {
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			var childrenArray = this.container.children;
 			for(let i = 0; i < childrenArray.length; i++) {
-				childrenArray[i].position.z = 300 * Math.cos(this.count) * i;
+				childrenArray[i].position.z = 300 * Math.cos(this.count) * i + 0.001;
 			}
-			var sin = Math.sin(this.count);
-			this.container.rotation.y -= 0.01 * Math.cos(this.count);
-			this.container.rotation.z -= 0.05 * sin;
-			this.container.rotation.x -= 0.01 * sin;
+			var sin = Math.sin(this.count)  + 0.001;
+			this.container.rotation.y -= 0.01 * Math.cos(this.count) + 0.001;
+			this.container.rotation.z -= 0.05 * sin + 0.001;
+			this.container.rotation.x -= 0.01 * sin + 0.001;
+		}
+	}
+}
+
+/** concentric cylinders to look like a tunnel */
+class TunnelAttempt2 extends Scene3D {
+	start() {
+		super.start();
+		let numberOfCircles = 10;
+		for(var i = 0; i < numberOfCircles; i++) {
+			this.container.add(
+				new THREE.LineSegments(
+					new THREE.TorusGeometry( 100 * (i + 1), 30, 3, 20 ),
+					whiteDashedLineMaterial
+				)
+			);
+		}
+		this.container.position.z -= 600;
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var isBeat = this.isBeat;
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			var sin = Math.sin(this.count) + 0.001;
+			var cos = Math.cos(this.count) + 0.001;
+			for(let i = 0; i < childrenArray.length; i++) {
+				if(i % 2 == 0){
+					childrenArray[i].rotation.z = -1 * cos/8;
+				}
+				else {
+					childrenArray[i].rotation.z = cos/12;
+					childrenArray[i].scale.z += 2*volume * cos;
+					if(childrenArray[i].scale.z > 10) {
+						childrenArray[i].scale.z = 1
+					}
+				}
+			}
+
+			this.container.rotation.y -= 0.005 * Math.cos(this.count) + 0.001;
+			this.container.rotation.x -= 0.04 * sin;
+			// this.container.rotation.x -= 0.01 * sin;
 		}
 	}
 }
@@ -1461,7 +1573,7 @@ class DotsCrown extends Scene3D {
 				childrenArray[i].scale.z = 30 * cos * i;
 			}
 			this.container.rotation.x -= 0.01 * cos;
-			this.container.rotation.y += 0.005 * Math.sin(this.count);
+			this.container.rotation.y += 0.005 * Math.sin(this.count) + 0.001;
 		}
 	}
 }
@@ -1487,10 +1599,10 @@ class LineCrown extends Scene3D {
 			var childrenArray = this.container.children;
 			var cos = Math.cos(this.count);
 			for(let i = 0; i < childrenArray.length; i++) {
-				childrenArray[i].scale.z = 30 * cos * i;
+				childrenArray[i].scale.z = 30 * cos * i + 0.001;
 			}
 			this.container.rotation.x -= 0.01 * cos;
-			this.container.rotation.y += 0.005 * Math.sin(this.count);
+			this.container.rotation.y += 0.005 * Math.sin(this.count) + 0.001;
 		}
 	}
 }
@@ -1516,10 +1628,49 @@ class AdvancedTorus extends Scene3D {
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			var childrenArray = this.container.children;
 			for(let i = 0; i < childrenArray.length; i++) {
-				childrenArray[i].scale.z = 10 * Math.cos(this.count) * i;
+				childrenArray[i].scale.z = 10 * Math.cos(this.count) * i + 0.001;
 			}
 			if(isBeat) {
-				childrenArray[randomIntFromInterval(0, childrenArray.length)].scale.z = -30 * Math.cos(volume);
+				childrenArray[randomIntFromInterval(0, childrenArray.length - 1)].scale.z = -30 * Math.cos(volume);
+			}
+			//this.container.rotation.x -= 0.01 * cos * volume;
+			//this.container.rotation.y += 0.005 * Math.sin(this.count) * volume;
+		}
+	}
+}
+/** Audio reactive toruses */
+class AdvancedTorusDots extends Scene3D {
+	start() {
+		super.start();
+		let numberOfCircles = 10;
+		for(var i = 0; i < numberOfCircles; i++) {
+			this.container.add(
+				new THREE.Points(
+					new THREE.TorusGeometry( 100 * (i + 1), 3, 3, 20 ),
+					new THREE.PointsMaterial( {
+						color: 0xffffff,
+						size: Math.random()*20 + 1
+					} )
+				)
+			);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var isBeat = this.isBeat;
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].scale.z = 10 * Math.cos(this.count) * i + 0.001;
+			}
+			childrenArray[4].scale.z = -8 * Math.cos(this.count) + 0.001;
+			childrenArray[4].rotation.z -= 2 * Math.cos(this.count) + 0.001;
+			childrenArray[6].rotation.z -= 2 * Math.cos(this.count) + 0.001;
+			childrenArray[6].scale.z = -14 * Math.cos(this.count) + 0.001;
+			childrenArray[8].scale.z = -18 * Math.cos(this.count) + 0.001;
+			if(isBeat) {
+				childrenArray[randomIntFromInterval(0, childrenArray.length - 1)].scale.z = -30 * Math.cos(volume);
 			}
 			//this.container.rotation.x -= 0.01 * cos * volume;
 			//this.container.rotation.y += 0.005 * Math.sin(this.count) * volume;
@@ -1566,7 +1717,7 @@ class DiagonalRectangles extends Scene3D {
 					}
 				}
 			}
-			this.container.rotation.x = 6 * Math.sin(this.count) + 2 * Math.PI;
+			this.container.rotation.x = 3 * Math.sin(this.count) + 2 * Math.PI;
 		}
 	}
 }
@@ -1586,6 +1737,57 @@ class ArrayOfCubes extends Scene3D {
 		for(let i = 0; i < boxesAcross; i++) {
 			for(let j = 0; j < boxesDown; j++) {
 				let box = new THREE.Mesh( geometry1, meshLambertWire );
+				box.rotation.x = Math.random() * Math.PI;
+				box.position.x = (boxSpacing * i);
+				box.position.y = (boxSpacing * j);
+				this.container.add(box);
+			}
+		}
+		this.container.position.z = 300;
+		this.container.position.x = -boxesAcross/2*50 - 150;
+		this.container.position.y = -boxesDown/2*50 - 50;
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.y += 0.001 * i;
+				if(isBeat) {
+					var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
+					this.container.children[selectedBox].rotation.x += Math.PI/12;
+					this.container.children[selectedBox].scale.x += 1;
+					if(this.container.children[selectedBox].scale.x > 5) {
+						this.container.children[selectedBox].scale.x = 1
+					}
+				}
+			}
+			// this.container.rotation.x = 6 * Math.sin(this.count) + 2 * Math.PI;
+		}
+	}
+}
+
+/** Cubes on screen each warping in different ways */
+class ArrayOfCubeDots extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.BoxGeometry(
+			50,
+			50,
+			50
+		);
+		var boxSpacing = 100;
+		var boxesAcross = 8;
+		var boxesDown = 4;
+
+		for(let i = 0; i < boxesAcross; i++) {
+			for(let j = 0; j < boxesDown; j++) {
+				var cubePointsMat = new THREE.PointsMaterial( {
+					color: 0xffffff,
+					size: Math.random()*20
+				} );
+				let box = new THREE.Points( geometry1, cubePointsMat );
 				box.rotation.x = Math.random() * Math.PI;
 				box.position.x = (boxSpacing * i);
 				box.position.y = (boxSpacing * j);
@@ -1647,10 +1849,10 @@ class FakeLasers extends Scene3D {
 		var isBeat = this.isBeat;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			var childrenArray = this.container.children[0].children;
-			childrenArray[0].rotation.x = Math.sin(this.count / Math.PI);
-			childrenArray[0].rotation.z = Math.sin(this.count / Math.PI);
-			childrenArray[2].rotation.x = Math.sin(this.count / Math.PI);
-			childrenArray[2].rotation.z = -Math.sin(this.count / Math.PI);
+			childrenArray[0].rotation.x = Math.sin(this.count / Math.PI) + 0.001;
+			childrenArray[0].rotation.z = Math.sin(this.count / Math.PI) + 0.001;
+			childrenArray[2].rotation.x = Math.sin(this.count / Math.PI) + 0.001;
+			childrenArray[2].rotation.z = -Math.sin(this.count / Math.PI) + 0.001;
 			for(let i = 0; i < childrenArray.length; i++) {
 				if(isBeat) {
 					childrenArray[1].scale.x += this.volume * 3;
@@ -1701,6 +1903,48 @@ class ArrayOfTetrahedrons extends Scene3D {
 					if(this.container.children[selectedBox].scale.x > 5) {
 						this.container.children[selectedBox].scale.x = 1
 					}
+				}
+			}
+			// this.container.rotation.x = 6 * Math.sin(this.count) + 2 * Math.PI;
+		}
+	}
+}
+
+/** same as array of tetrahedrons except they dont scale */
+class ArrayOfTetrahedrons2 extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.TetrahedronGeometry(
+			50 // radius
+		);
+		var boxSpacing = 100;
+		var boxesAcross = 8;
+		var boxesDown = 4;
+		for(let i = 0; i < boxesAcross; i++) {
+			for(let j = 0; j < boxesDown; j++) {
+				let box = new THREE.Mesh( geometry1, meshLambertWire );
+				box.rotation.x = Math.random() * Math.PI;
+				box.position.x = (boxSpacing * i);
+				box.position.y = (boxSpacing * j);
+				this.container.add(box);
+			}
+		}
+		this.container.position.z = 300;
+		this.container.position.x = -boxesAcross/2*50 - 150;
+		this.container.position.y = -boxesDown/2*50 - 50;
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.y += 0.001 * i;
+				if(isBeat) {
+					var selectedBox = randomIntFromInterval(0, childrenArray.length - 1);
+					this.container.children[selectedBox].rotation.x += Math.PI/12;
+					this.container.children[selectedBox].rotation.z += Math.PI/24;
+					this.container.children[selectedBox].rotation.y += Math.PI/128;
 				}
 			}
 			// this.container.rotation.x = 6 * Math.sin(this.count) + 2 * Math.PI;
@@ -1764,7 +2008,7 @@ class FlyingCircles extends Scene3D {
 	start() {
 		super.start();
 		var geometry1 = new THREE.CircleGeometry(
-			Math.random() * 100 + 50, // radius random 50 to 100
+			Math.random() * 100 + 75, // radius random 50 to 100
 			16 // segments
 		);
 		var boxSpacing = 200;
@@ -1773,6 +2017,61 @@ class FlyingCircles extends Scene3D {
 		for(let i = 0; i < boxesAcross; i++) {
 			for(let j = 0; j < boxesDown; j++) {
 				let box = new THREE.Mesh( geometry1, meshLambertWire );
+				box.position.x = (boxSpacing * i);
+				box.position.y = (boxSpacing * j);
+				this.container.add(box);
+			}
+		}
+		this.container.position.x = -(boxesAcross-1)*100 + 100;
+		this.container.position.y = -(boxesDown-1)*100 - 50;
+		this.container.rotation.y = Math.PI/12;
+		this.container.rotation.x = -Math.PI/24;
+		this.container.rotation.z = Math.PI/24;
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				if(i%randomIntFromInterval(0,childrenArray.length) == 0) {
+					childrenArray[i].rotation.y += 0.2 * this.volume;
+				}
+				if(i%2 == 0) {
+					childrenArray[i].rotation.x += 0.2 * this.volume;
+				}
+				else {
+					if(isBeat) {
+						childrenArray[i].rotation.z += 0.2 * this.volume;
+					}
+				}
+			}
+		}
+	}
+}
+
+/** Bunch of spheres in an array doing things */
+class BunchOfSpheres extends Scene3D {
+	start() {
+		super.start();
+		var geometry1 = new THREE.SphereGeometry(
+			Math.random() * 100 + 75, // radius random 50 to 100
+			8, // width segments
+			6 // height segments
+		);
+		var boxSpacing = 200;
+		var boxesAcross = 6;
+		var boxesDown = 4;
+		let box = new THREE.LineSegments(
+			new THREE.SphereGeometry(
+				200, 8, 6
+			), whiteDashedLineMaterial );
+		box.position.x = boxesAcross/2 * 100;
+		box.position.y = boxesDown/2 * 100;
+		this.container.add(box);
+		for(let i = 0; i < boxesAcross; i++) {
+			for(let j = 0; j < boxesDown; j++) {
+				let box = new THREE.LineSegments( geometry1, whiteDashedLineMaterial );
 				box.position.x = (boxSpacing * i);
 				box.position.y = (boxSpacing * j);
 				this.container.add(box);
@@ -1787,7 +2086,16 @@ class FlyingCircles extends Scene3D {
 		var isBeat = this.isBeat;
 		if((this.container != null) && (typeof this.container != 'undefined')) {
 			var childrenArray = this.container.children;
-			for(let i = 0; i < childrenArray.length; i++) {
+			childrenArray[0].scale.x += 0.2 * this.volume;
+			childrenArray[0].scale.y += 0.2 * this.volume;
+			if(childrenArray[0].scale.x > 5) {
+				childrenArray[0].scale.x = 1
+			}
+			if(childrenArray[0].scale.y > 5) {
+				childrenArray[0].scale.y = 1
+			}
+
+			for(let i = 1; i < childrenArray.length; i++) {
 				if(i%3 == 0) {
 					childrenArray[i].rotation.y += 0.2 * this.volume;
 				}
@@ -1804,9 +2112,91 @@ class FlyingCircles extends Scene3D {
 	}
 }
 
+/** Tetrahedrons zoomed in the centered */
+class CenteredTetrahedron extends Scene3D {
+	start() {
+		super.start();
+		let numberOfTets = 10;
+		for(let i = 0; i < numberOfTets; i++) {
+			var geometry1 = new THREE.TetrahedronGeometry(
+				Math.random() * 150 * i + 100 // radius
+			);
+			let tet = new THREE.LineSegments(geometry1, whiteDashedLineMaterial);
+			this.container.add(tet);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children;
+			// childrenArray[0].scale.x += 0.2 * this.volume;
+			// childrenArray[0].scale.y += 0.2 * this.volume;
+			// if(childrenArray[0].scale.x > 5) {
+			// 	childrenArray[0].scale.x = 1
+			// }
+			// if(childrenArray[0].scale.y > 5) {
+			// 	childrenArray[0].scale.y = 1
+			// }
+
+			for(let i = childrenArray.length - 1; i > 0; i--) {
+				childrenArray[i].rotation.z += 0.02 * this.volume * i;
+				childrenArray[i].rotation.y += 0.01 * this.volume * i;
+			}
+		}
+	}
+}
+
+/** sticks */
+class StickScene2 extends Scene3D {
+	start() {
+		super.start();
+		let pivot;
+		let stickEndWidth = 10;
+		let stickLength = 500;
+		const numberOfSticks = 10;
+		let stickGapDistance = 100;
+		let stickGroup = new THREE.Group();
+		var stickMaterial = new THREE.PointsMaterial( {
+			color: 0xffffff,
+			size: Math.random()*40 + 20
+		} );
+		// create an assortment of sticks
+		for(let i = 0; i < numberOfSticks; i++) {
+			let stickGeometry = new THREE.BoxGeometry( stickLength, stickEndWidth, stickEndWidth );
+			let stick = new THREE.Points( stickGeometry, stickMaterial );
+			stick.position.set(0, stickGapDistance*i, 0);
+			stick.rotation.set(0, (2*Math.PI*i)/numberOfSticks, 0);
+			stickGroup.add(stick);
+		}
+		// add sticks to scene and move group to center.
+		stickGroup.position.set(0, -numberOfSticks * stickGapDistance/2, 0);
+		pivot = new THREE.Object3D();
+		pivot.name = 'pivot';
+		pivot.add(stickGroup);
+		this.container.add(pivot);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		var volume = this.volume;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			var childrenArray = this.container.children[0].children[0].children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				childrenArray[i].rotation.set(0, (Math.PI*i/4), 0);
+				childrenArray[i].scale.x = volume * 70;
+				childrenArray[i].scale.y = volume * 20;
+			}
+			this.container.rotateZ(0.01);
+			this.container.rotateX(-0.001);
+			this.container.rotateY(0.1);
+		}
+	}
+}
+
+
 
 // Setup THREE.js stuff for rendering
-app3D.add(new THREE.AxesHelper(300));	// debug x,y,z axis
+//app3D.add(new THREE.AxesHelper(300));	// debug x,y,z axis
 app3D.add(ambientLight);
 app3D.add(pointLight);
 
@@ -1847,6 +2237,14 @@ let fakeLasers = new FakeLasers("fakeLasers");
 let arrayOfTetrahedrons = new ArrayOfTetrahedrons("arrayOfTetrahedrons");
 let shaderScene = new ShaderScene("shaderScene");
 let flyingCircles = new FlyingCircles("flyingCircles");
+let bunchOfSpheres = new BunchOfSpheres("bunchOfSpheres");
+let centeredTets = new CenteredTetrahedron("bunchOfSpheres");
+let stickScene2 = new StickScene2("stickScene2");
+let tunnelAttempt2 = new TunnelAttempt2("tunnelAttempt2");
+let arrayOfCubeDots = new ArrayOfCubeDots("arrayOfCubeDots");
+let arrayOfTetrahedrons2 = new ArrayOfTetrahedrons2("arrayOfTetrahedrons2");
+let flashingTunnelCircles2 = new FlashingTunnelCircles2("flashingTunnelCircles2");
+let advancedTorusDots = new AdvancedTorusDots("advancedTorusDots");
 
 
 // Create a list of 2D scenes
@@ -1855,8 +2253,6 @@ let discoScene = new DiscoScene("disco");
 let triangleScene = new TriangleScene("triangle");
 let circlesArray = new CirclesArray("circlesArray");
 let bubblesArray = new BubblesArray("bubbles");
-let oneCircleScene = new OneCircleScene("square");
-let beatLine = new BeatLine("beatLine");
 let centeredCircles = new CenteredCircles("centered");
 let rays = new RaysScene("rays");
 let tallRectangles = new TallRectangles("tallRectangles");
@@ -1877,62 +2273,58 @@ current2Dscene.start();
 
 // Array of 3D scenes to choose from
 let arrayOf3Dscenes = [
-	// empty3Dscene,
-	// empty3Dscene,
-	// empty3Dscene,
-	// sphereScene,
-	// planeScene,
-	// stickScene,
-	// torusScene,
-	// circleRotatingScene,
-	// knotScene,
-	// octahedronScene,
-	// nestedScene,
-	// darkIcosahedron,
-	// hoopScene,
-	// moonScene,
-	// tetras,
-	// diskScene,
-	// threeTorus,
-	// cones,
-	// dotScene,
-	// longBoxScene,
-	// galaxyDots,
-	// rotateMacaroni,
-	// flashingTunnelCircles,
-	// tunnelAttempt,
-	// dotsCrown,
-	// advancedTorus,
-	// lineCrown,
-	// advancedTorus,
-	// diagonalRectangles,
-	// arrayOfCubes,
-	// fakeLasers,
-	// arrayOfTetrahedrons,
-	// shaderScene,
-	flyingCircles
+	empty3Dscene,
+	empty3Dscene,
+	empty3Dscene,
+	sphereScene,
+	planeScene,
+	stickScene,
+	tetras,
+	dotScene,
+	longBoxScene,
+	galaxyDots,
+	rotateMacaroni,
+	flashingTunnelCircles,
+	tunnelAttempt,
+	dotsCrown,
+	advancedTorus,
+	lineCrown,
+	advancedTorus,
+	arrayOfCubes,
+	fakeLasers,
+	arrayOfTetrahedrons,
+	shaderScene,
+	bunchOfSpheres,
+	centeredTets,
+	flyingCircles,
+	stickScene2,
+	tunnelAttempt2,
+	arrayOfCubeDots,
+	arrayOfTetrahedrons2,
+	flashingTunnelCircles2,
+	advancedTorusDots,
+	diagonalRectangles
 ];
 
 // Array of 2D scenes to choose from
 let arrayOf2Dscenes = [
-	// emptyScene,
-	// emptyScene,
-	// emptyScene,
-	// emptyScene,
-	// discoScene,
-	// triangleScene,
-	// circlesArray,
-	// bubblesArray,
-	// oneCircleScene,
-	// triangleScene,
-	// beatLine,
-	// centeredCircles,
-	// rays,
-	// tallRectangles,
-	// centeredPolygon,
-	// fixedTriangles,
-	// verticalRectangles,
-	// horizontalLines,
+	emptyScene,
+	emptyScene,
+	emptyScene,
+	emptyScene,
+	discoScene,
+	triangleScene,
+	circlesArray,
+	bubblesArray,
+	//oneCircleScene,
+	triangleScene,
+	centeredCircles,
+	rays,
+	tallRectangles,
+	centeredPolygon,
+	verticalRectangles,
+	horizontalLines,
+	fixedTriangles,
 	cosineLines
 ];
 
@@ -1989,6 +2381,30 @@ export default function(audioData) {
 	// Only feed audio data into the scenes that are currently on screen (not null).
 
 	// 3D scenes
+	if(advancedTorusDots != null) {
+		advancedTorusDots.audioTick(audioData);
+	}
+	if(flashingTunnelCircles2 != null) {
+		flashingTunnelCircles2.audioTick(audioData);
+	}
+	if(arrayOfTetrahedrons2 != null) {
+		arrayOfTetrahedrons2.audioTick(audioData);
+	}
+	if(arrayOfCubeDots != null) {
+		arrayOfCubeDots.audioTick(audioData);
+	}
+	if(tunnelAttempt2 != null) {
+		tunnelAttempt2.audioTick(audioData);
+	}
+	if(stickScene2 != null) {
+		stickScene2.audioTick(audioData);
+	}
+	if(centeredTets != null) {
+		centeredTets.audioTick(audioData);
+	}
+	if(bunchOfSpheres != null) {
+		bunchOfSpheres.audioTick(audioData);
+	}
 	if(flyingCircles != null) {
 		flyingCircles.audioTick(audioData);
 	}
@@ -2087,6 +2503,9 @@ export default function(audioData) {
 		verticalRectangles.audioTick(audioData);
 	}
 	// 2D scenes
+	if(fixedTriangles != null) {
+		fixedTriangles.audioTick(audioData);
+	}
 	if(discoScene != null) {
 		discoScene.audioTick(audioData);
 	}
@@ -2101,12 +2520,6 @@ export default function(audioData) {
 	}
 	if(bubblesArray != null) {
 		bubblesArray.audioTick(audioData);
-	}
-	if(oneCircleScene != null) {
-		oneCircleScene.audioTick(audioData);
-	}
-	if(beatLine != null) {
-		beatLine.audioTick(audioData);
 	}
 	if(centeredCircles != null) {
 		centeredCircles.audioTick(audioData);

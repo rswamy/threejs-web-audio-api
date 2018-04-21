@@ -6,6 +6,7 @@ body {
   background: $themeColor-Light;
   margin: 0;
   padding: 0;
+  cursor: none;
 }
 /* styles needed for adding canvas debugger to dat gui */
 .dg .closed li:not(.title), .dg .closed ul li, .dg .closed ul li > * {
