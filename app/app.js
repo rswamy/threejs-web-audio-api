@@ -38,5 +38,4 @@ audioAnalyzer.start((audioData) => {
   scene(audioData);
 });
 
-
 console.log('app loaded');

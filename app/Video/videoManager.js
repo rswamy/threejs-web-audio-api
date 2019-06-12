@@ -28,7 +28,7 @@ export default function () {
 	videoTimerDisplay.id = 'scene2Dtimer';
 	let t = document.createTextNode("initVideo");
 	videoTimerDisplay.appendChild(t);
-	document.getElementById('timers').appendChild(videoTimerDisplay);
+	// document.getElementById('timers').appendChild(videoTimerDisplay);
 
 	/**
 	 * Save all video sources from playlist
