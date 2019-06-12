@@ -24,11 +24,18 @@ export default function () {
 	/**
 	 * Set up video timer display element
 	 */
+		// Make timer for all timers
+	let pageTimers = document.getElementById('timers')
+	if(pageTimers == null) {
+		let pageTimers = document.createElement("ul");
+		pageTimers.id = 'timers';
+		document.body.appendChild(pageTimers);
+	}
 	let videoTimerDisplay = document.createElement("li");
-	videoTimerDisplay.id = 'scene2Dtimer';
+	videoTimerDisplay.id = 'videoTimer';
 	let t = document.createTextNode("initVideo");
 	videoTimerDisplay.appendChild(t);
-	// document.getElementById('timers').appendChild(videoTimerDisplay);
+	pageTimers.appendChild(videoTimerDisplay);
 
 	/**
 	 * Save all video sources from playlist

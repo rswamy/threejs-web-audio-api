@@ -6,17 +6,17 @@ const scene2DintervalMin = 60*1000*5; // 5min
 const scene2DintervalMax = 60*1000*10; //20min
 
 // Make timer for all timers
-let timers = document.createElement("ul");
-timers.id = 'timers';
-if(document.getElementById('timers') == null) {
-	document.body.appendChild(timers);
+let pageTimers = document.getElementById('timers')
+if(pageTimers == null) {
+	pageTimers = document.createElement("ul");
+	pageTimers.id = 'timers';
+	document.body.appendChild(pageTimers);
 }
-
 // Display timer for debugging 2D scenes as a list item in the #timers ul.
 let scene2DtimerDisplay = document.createElement("li");
 scene2DtimerDisplay.id = 'scene2Dtimer';
 scene2DtimerDisplay.appendChild(document.createTextNode("init2D"));
-timers.appendChild(scene2DtimerDisplay);
+pageTimers.appendChild(scene2DtimerDisplay);
 
 /** * * * * * * * * * * 2D Scene setup * * * * * * * * * * * * * * *
  * PIXIjs initialization
@@ -113,7 +113,7 @@ class FixedTriangleRow extends Scene2D {
 
 
 /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * * * * * * * * * * * 2D and 3D SCENE PLAYBACK CONTROL LOGIC * * * * * * * * * * * * * * *
+ * * * * * * * * * * * 2D SCENE PLAYBACK CONTROL LOGIC * * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 // Create a list of 2D scenes
@@ -161,15 +161,42 @@ function random2Dscene() {
  * Called from app.js.
  *
  * @param audioData
+ * @param command
  */
-export default function(audioData) {
+export function audioReactive(audioData, command) {
 	// Only feed audio data into the scenes that are currently on screen (not null).
 
 	// 2D scenes
 	if(fixedTriangles != null) {
 		fixedTriangles.audioTick(audioData);
 	}
+
+	if(command !== null) {
+		console.log('scene2D] command: ' + command)
+	}
 }
+
+export function stop() {
+	current2Dscene.stop();
+}
+export function start() {
+	current2Dscene.start();
+}
+export function random() {
+	random2Dscene();
+}
+export function restart() {
+	current2Dscene.stop();
+	current2Dscene.start();
+}
+export function empty() {
+	current2Dscene.stop();
+	empty2Dscene.start();
+}
+export function name() {
+	return current2Dscene.sceneName;
+}
+
 
 
 /** * * * * * * * * * * General helper functions * * * * * * * * * * * * * * */
