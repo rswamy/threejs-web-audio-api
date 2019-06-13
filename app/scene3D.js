@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import axis from './Debug/axis';
 
+var chroma = require('chroma-js');
+
 const windowWidth = window.innerWidth;
 const windowHeight = window.innerHeight;
 const scene3DintervalMin = 60*1000*5;
@@ -52,11 +54,35 @@ let ambientLight = new THREE.AmbientLight(0x404040);
 // set where you want the light to be directed at
 pointLight.position.set(10, 50, 130);
 
-/* Materials */
+
+/**
+ * Materials
+ *  --------
+ */
 var meshDepthMaterial = new THREE.MeshDepthMaterial();
 var meshLambertWire = new THREE.MeshLambertMaterial({
 	wireframe: true
 });
+var whiteWireframeMaterial = new THREE.MeshBasicMaterial( {
+	color: 0xffffff,
+	wireframe: true
+} );
+
+/**
+ * Rendering
+ *  --------
+ */
+
+// Setup THREE.js stuff for rendering
+app3D.add(new THREE.AxesHelper(300));	// debug x,y,z axis
+app3D.add(new THREE.GridHelper(1000, 50));
+app3D.add(ambientLight);
+app3D.add(pointLight);
+
+/**
+ * Scene constructor
+ *  --------
+ */
 
 class Scene3D {
 	constructor(sceneName) {
@@ -82,7 +108,7 @@ class Scene3D {
 		this.container = new THREE.Group();
 		app3D.add(this.container);
 	}
-	audioTick(audioData) {
+	audioTick(audioData, keypressed) {
 		this.isBeat = audioData.isBeat;
 		this.levels = audioData.levels;
 		this.waveform = audioData.waveform;
@@ -91,6 +117,11 @@ class Scene3D {
 		this.count += 0.01;
 	}
 }
+
+/** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * * * * * * * * * * * * * * * * 3D SCENE CATALOG * * * * * * * * * * * * * * * * * * * * *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ */
 
 /** Audio reactive toruses */
 class AdvancedTorusDots extends Scene3D {
@@ -132,11 +163,259 @@ class AdvancedTorusDots extends Scene3D {
 	}
 }
 
+/** Concentric rings */
+class Rings extends Scene3D {
+	start() {
+		super.start();
+		let numberOfRings = 5;
+		for (let j = 0; j < numberOfRings; j++) {
+			let geometry = new THREE.Mesh(
+				new THREE.TorusGeometry(100 + (100 * j), 50, 10, 50),
+				new THREE.MeshLambertMaterial({
+					color: chroma('#d4f880').hex(),
+					wireframe: true,
+					transparent:true,
+					opacity: 1
+				})
+			);
+			this.container.add(geometry)
+		}
+	}
+	audioTick(audioData, keypressed) {
+		super.audioTick(audioData);
+		let isBeat = this.isBeat;
+		let volume = this.volume;
+		let f = chroma.scale(['435b55', '04e2a3']);
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			let childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				let child = childrenArray[i];
+				if(isBeat) {
+					child.rotation.z += 0.001 * i;
+				}
+				if(i % 3 === 0) {
+					child.rotation.z += 0.1 * Math.sin(this.count) * volume;
+				}
+				else {
+					child.rotation.z -= 0.001 * i;
+				}
+				let m = Math.abs(Math.sin(this.count)) * map(volume, 0, 1, 0.3, 1);
+				child.material.color.set(f(m).hex())
+				child.material.opacity = volume;
+			}
+			if(keypressed )
+			console.log(keypressed)
+		}
+	}
+}
 
-// Setup THREE.js stuff for rendering
-//app3D.add(new THREE.AxesHelper(300));	// debug x,y,z axis
-app3D.add(ambientLight);
-app3D.add(pointLight);
+/** Concentric rings */
+class TubeLight1 extends Scene3D {
+	start() {
+		super.start();
+		let numberOfLights = 10;
+		let radius = 500;
+		let length  = 1200;
+		let range = 1000;
+		for (let i = 0; i < numberOfLights; i++) {
+			let cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry( 200, 200, length, 3, 1, false),
+				new THREE.MeshBasicMaterial({
+					color: chroma('#d4f880').hex(),
+					wireframe: true,
+					transparent: true,
+					opacity: 1
+				})
+			);
+			cylinder.rotation.z = Math.PI/numberOfLights * i;
+			this.container.add(cylinder);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		let isBeat = this.isBeat;
+		let volume = this.volume;
+		let f = chroma.scale(['435b55', '04e2a3']);
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			let childrenArray = this.container.children;
+			// this.container.rotation.y += 0.1 * Math.sin(this.count) * volume;
+			for(let i = 0; i < childrenArray.length; i++) {
+				let child = childrenArray[i];
+				if(isBeat) {
+					child.rotation.z += 0.001 * i;
+				}
+				if(i % 3 === 0) {
+					child.rotation.z += 0.1 * Math.sin(this.count) * volume;
+				}
+				else {
+					child.rotation.z -= 0.001 * i;
+				}
+				let m = Math.abs(Math.sin(this.count)) * volume;
+				child.material.color.set(f(m).hex())
+				child.material.opacity = volume;
+			}
+		}
+	}
+}
+
+/** Audio reactive toruses */
+class TubeLight2 extends Scene3D {
+	start() {
+		super.start();
+		let numberOfLights = 10;
+		let radius = 500;
+		let length  = 700;
+		for(var i = 0; i < numberOfLights; i++) {
+			let cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry( 3, 3, length, 8, 1, false),
+				meshDepthMaterial
+			);
+			// cylinder.rotation.z = Math.PI/6;
+			let angle = i * 2 * Math.PI/numberOfLights;
+			cylinder.position.x = Math.cos(angle) * radius;
+			cylinder.position.z = Math.sin(angle) * radius;
+			cylinder.rotation.z = Math.PI/numberOfLights;
+			cylinder.rotation.y = angle;
+			this.container.add(cylinder);
+		}
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		let isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			let childrenArray = this.container.children;
+			for(let i = 0; i < childrenArray.length; i++) {
+				if(isBeat) {
+					childrenArray[i].rotation.y += 0.01 * i;
+				}
+			}
+			//this.container.rotation.x -= 0.01 * cos * volume;
+			//this.container.rotation.y += 0.005 * Math.sin(this.count) * volume;
+		}
+	}
+}
+
+/** Audio reactive toruses */
+class TubeLight3 extends Scene3D {
+	start() {
+		super.start();
+		let numberOfLights = 10;
+		let radius = 500;
+		let length  = 1500;
+		for(var i = 0; i < numberOfLights; i++) {
+			let cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry( 3, 3, length, 8, 1, false),
+				meshDepthMaterial
+			);
+			// cylinder.rotation.z = Math.PI/6;
+			let angle = i * 2 * Math.PI/numberOfLights;
+			cylinder.position.x = Math.cos(angle) * radius;
+			cylinder.position.z = Math.sin(angle) * radius;
+			cylinder.rotation.z = Math.PI/numberOfLights * angle;
+			cylinder.rotation.y = angle;
+			this.container.add(cylinder);
+		}
+		let group = new THREE.Group();
+		for(var i = 0; i < numberOfLights; i++) {
+			let cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry( 30, 30, length, 3, 1, false),
+				meshLambertWire
+			);
+			// cylinder.rotation.z = Math.PI/6;
+			let angle = i * 2 * Math.PI/numberOfLights;
+			cylinder.position.x = Math.cos(angle) * radius;
+			cylinder.position.z = Math.sin(angle) * radius;
+			cylinder.rotation.y = Math.PI/numberOfLights;
+			cylinder.rotation.x = angle;
+			group.add(cylinder);
+		}
+		this.container.add(group);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		let isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			let childrenArray = this.container.children;
+			this.container.rotation.y += 0.001
+			for(let i = 0; i < childrenArray.length; i++) {
+				let child = childrenArray[i];
+				if(child.type === 'Mesh') {
+					if(isBeat) {
+						childrenArray[i].rotation.z += 0.001 * i;
+					}
+				}
+				else {
+					for(let j = 0; j < child.children.length; j++) {
+						child.children[j].rotation.x += 0.01;
+					}
+				}
+			}
+			// console.log(this.container)
+			//this.container.rotation.x -= 0.01 * cos * volume;
+			//this.container.rotation.y += 0.005 * Math.sin(this.count) * volume;
+		}
+	}
+}
+
+class TubeLight4 extends Scene3D {
+	start() {
+		super.start();
+		let numberOfLights = 20;
+		let radius = 500;
+		let length  = 1500;
+		let range = 1000;
+		for(var i = 0; i < numberOfLights; i++) {
+			let cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry( 2, 1, length, 8, 1, false),
+				meshDepthMaterial
+			);
+			cylinder.position.x = (i * range * 2/numberOfLights) - range;
+			this.container.add(cylinder);
+		}
+		let group = new THREE.Group();
+		for(var i = 0; i < numberOfLights; i++) {
+			let cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry( 30, 30, length, 3, 1, false),
+				meshLambertWire
+			);
+			// cylinder.rotation.z = Math.PI/6;
+			let angle = i * 2 * Math.PI/numberOfLights;
+			cylinder.position.x = Math.cos(angle) * radius;
+			cylinder.position.z = Math.sin(angle) * radius;
+			cylinder.rotation.y = Math.PI/numberOfLights;
+			cylinder.rotation.x = angle;
+			group.add(cylinder);
+		}
+		this.container.add(group);
+	}
+	audioTick(audioData) {
+		super.audioTick(audioData);
+		let isBeat = this.isBeat;
+		if((this.container != null) && (typeof this.container != 'undefined')) {
+			let childrenArray = this.container.children;
+			this.container.rotation.y += 0.001
+			for(let i = 0; i < childrenArray.length; i++) {
+				let child = childrenArray[i];
+				if(child.type === 'Mesh') {
+					if(isBeat) {
+						childrenArray[i].rotation.z += 0.01 * i;
+					}
+					childrenArray[i].rotation.z += 0.001 * i;
+				}
+				else {
+					for(let j = 0; j < child.children.length; j++) {
+						child.children[j].rotation.x += 0.01;
+					}
+				}
+			}
+			// console.log(this.container)
+			//this.container.rotation.x -= 0.01 * cos * volume;
+			//this.container.rotation.y += 0.005 * Math.sin(this.count) * volume;
+		}
+	}
+}
+
+
 
 /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * * * * * * * * * * * 2D and 3D SCENE PLAYBACK CONTROL LOGIC * * * * * * * * * * * * * * *
@@ -145,6 +424,8 @@ app3D.add(pointLight);
 // Create list of 3D scenes
 let empty3Dscene = new Scene3D("empty");
 let advancedTorusDots = new AdvancedTorusDots("advancedTorusDots");
+let tubelight1 = new TubeLight1("tubelight1")
+let rings = new Rings("rings");
 
 // When app loads, initially show empty 2D and 3D scenes.
 var current3Dscene = empty3Dscene;
@@ -152,8 +433,10 @@ current3Dscene.start();
 
 // Array of 3D scenes to choose from
 let arrayOf3Dscenes = [
-	empty3Dscene,
-	advancedTorusDots
+	// empty3Dscene,
+	// advancedTorusDots,
+	// tubelight1,
+	rings
 ];
 
 // Then start choosing a random 2D and random 3D scene
@@ -180,12 +463,17 @@ function random3Dscene() {
  * Called from app.js.
  *
  * @param audioData
- * @param command - key pressed
  */
-export function audioReactive(audioData, command) {
+export function audioReactive(audioData, keypressed) {
 	// 3D scenes
 	if(advancedTorusDots != null) {
 		advancedTorusDots.audioTick(audioData);
+	}
+	if(tubelight1 != null) {
+		tubelight1.audioTick(audioData)
+	}
+	if(rings != null) {
+		rings.audioTick(audioData, keypressed)
 	}
 
 	// rerender scene every update

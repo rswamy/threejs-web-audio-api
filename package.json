@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/a-axton/threejs-web-audio-api",
   "dependencies": {
+    "chroma-js": "^2.0.3",
     "dat-gui": "^0.5.0",
     "less-loader": "^4.1.0",
     "lodash": "^3.10.1",

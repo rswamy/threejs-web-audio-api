@@ -171,9 +171,9 @@ export function audioReactive(audioData, command) {
 		fixedTriangles.audioTick(audioData);
 	}
 
-	if(command !== null) {
-		console.log('scene2D] command: ' + command)
-	}
+	// if(command !== null) {
+	// 	console.log('scene2D] command: ' + command)
+	// }
 }
 
 export function stop() {
